@@ -170,4 +170,10 @@ b.free();
   }.fork;
 )
 
-
+/* Week 3 exercise:
+ *
+ * Practice creating some SynthDefs
+ * (which should have a doneAction: 2 in them),
+ * and make simple sequences where you schedule
+ * Synths over time in an entertaining way
+ */
