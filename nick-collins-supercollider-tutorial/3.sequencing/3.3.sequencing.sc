@@ -227,7 +227,7 @@ TempoClock.default.tempo = 2;
     16.do {|i|
       Synth(\event, [\freq, (60 + i).midicps]);
       0.25.wait();
-    }
+    };
   }.fork();
 )
 
