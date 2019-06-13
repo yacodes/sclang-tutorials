@@ -30,7 +30,6 @@ FreqScope.new();
  * the Mouse is controlling the average number
  * of clicks per second, they are not evenly spaced!
  */
-
 {Dust.ar(MouseX.kr(1, 100))}.play
 
 // Types of LFNoise for linear random noise between -1 and 1 at a certain rate
