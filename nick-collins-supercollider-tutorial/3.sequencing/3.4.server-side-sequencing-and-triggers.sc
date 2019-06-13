@@ -244,5 +244,119 @@ a = Synth(\mytriggersynth);
  * this wouldn't reset the envelope
  */
 a.set(\trig, 1);
+a.set(\trig, 0);
 a.free();
 
+
+/* Another triggering example:
+ * you could collect triggers from one signal
+ * and use them to spawn changes
+ * in another part of the UGen graph
+ *
+ * Value of third frequency component
+ * is a new random number with each trigger
+ */
+(
+  {
+    var sound,env, trig;
+    /* > is itself a UGen when used in this context;
+     * it is outputting the result of comparing
+     * the LFNoise0 with the value 0 every sample!
+     */
+
+    trig = LFNoise0.ar(13) > 0; // Trigger source (might also use Dust, for example)
+
+    // TRand chooses a random number in its range when triggered
+    sound = Mix(LFPulse.ar(110 * [1, 5/2, TRand.ar(3.9, 4.1, trig)], 0.0, 0.5, 0.2));
+    env = EnvGen.ar(Env.perc(0.02, 0.1), trig); // With retriggering controlled by impulse
+    Pan2.ar(sound * env, 0.0);
+  }.play()
+)
+
+
+/*
+ * Some oscillators can be retriggered, for example SyncSaw
+ *
+ * For sync oscillators:
+ * hard sync = immediate reset of slave oscillator
+ * soft sync = wait till start of next period for a reset of state
+ *
+ * The final frequency and timbre is an interaction of
+ * the frequency of the slave oscillator and the syncing (resetting) signal
+ *
+ * SyncSaw is hard sync
+ */
+{SyncSaw.ar(MouseX.kr(1, 400), MouseY.kr(400, 800), 0.1)}.play();
+
+
+// Making a custom hard sync oscillator using an EnvGen and a trigger source
+(
+  {
+    EnvGen.ar(
+      Env([0, 0, 1, -1, 0], MouseY.kr(0, 1) * [0, 128, 256, 128] / SampleRate.ir),
+      Impulse.ar(MouseX.kr(10, 300, 'exponential'))
+    )
+  }.play()
+)
+
+
+/* To add smoothing and portamento to hard-edged signals,
+ * the Lag filter is useful
+ *
+ * Lag UGen; shortcut is .lag
+ */
+(
+  {
+    var source;
+    source = LFNoise0.ar(10);
+    [
+      source,	// Step
+      source.lag(0.1)	// Step with lag of period; so only gets to target value at end of step
+    ];
+  }.plot(1.0);
+)
+
+// Portamento/Glide
+{Saw.ar((Stepper.ar(Impulse.ar(10), 0, 1, 10, 1) * 200).lag(MouseX.kr(0.0, 0.2)))}.play()
+
+/* Another example:
+ * Ringz is a resonant filter,
+ * exprange puts values from -1 to 1
+ * to the desired range (100 to 2000)
+ * with an exponential mapping more
+ * fitting to human perception of frequency values
+ */
+{Ringz.ar(Saw.ar(LFNoise0.kr(5).lag(0.1).exprange(100, 2000), 0.2), 1000, 0.01)}.play()
+
+/* .round used to make frequency values
+ * round off to nearest 20 Hz (re-quantising the signal)
+ * perceived speed-ups due to interaction of slower
+ * lag and rounding of frequency
+ */
+{Ringz.ar(Saw.ar(LFNoise0.kr(5).lag(MouseX.kr(0.01, 0.3)).exprange(100, 2000).round(20), 0.2), 1000, 0.01)}.play()
+
+
+/* The Decay UGen can also be used to put
+ * a smoothed tail on an impulse (or any signal)
+ */
+(
+  {
+    Decay.ar(Impulse.ar(100), 0.01);
+  }.plot(0.1);
+)
+
+// See also Decay2 for smoothing at attack and release.
+(
+  {
+    Decay2.ar(Impulse.ar(100), 0.005, 0.01);
+  }.plot(0.1);
+)
+
+/* Other mechanisms (later):
+ * Demand rate UGens
+ *
+ * Sequencing and event reactive functionality
+ * can be constructed with other UGens like
+ * Index, IEnvGen, PulseCount, PulseDivider,
+ * ToggleFF, SetResetFF, Timer, Schmidt and more
+ */
