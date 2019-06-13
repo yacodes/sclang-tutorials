@@ -2,6 +2,8 @@ Server.local.boot;
 Server.local.reboot;
 Server.local.quit;
 
+FreqScope.new();
+
 // Sequencing events in SuperCollider
 
 /* There are various mechanisms in SuperCollider to cause events to play over time.
@@ -85,7 +87,7 @@ Synth(\event, [\freq, 880, \amp, 0.2, \pan, 1.0]);
     8.do {
       // rrand(low, hi) gets a uniform random number in that range
       Synth(\event, [\freq, rrand(440, 880)]);
-      1.0.wait();
+      0.2.wait();
     };
   }.fork();
 )
@@ -197,6 +199,37 @@ TempoClock.default.tempo = 2;
  *    The 16 faster paced events should go up in frequency over their course.
  *    Remember that 'do' is passed the iteration count as an argument.
  */
+
+// 1. Create an isochronous (evenly spaced) sequence of 16 events, separated by waiting 0.25 time units
+(
+  var clock = TempoClock(1);
+  {
+    16.do {
+      Synth(\event);
+      0.25.wait();
+    };
+  }.fork();
+)
+
+/* 2. At 126 bpm create four events separated by beats (a four to the floor, so to speak)
+ *    followed by 16 events separated by 0.25 beat gaps.
+ *    The four inital events should all be a middle C (hint: try 60.midicps).
+ *    The 16 faster paced events should go up in frequency over their course.
+ *    Remember that 'do' is passed the iteration count as an argument.
+ */
+(
+  var clock = TempoClock(126 / 60);
+  {
+    4.do {
+      Synth(\event, [\freq, 60.midicps]);
+      1.wait();
+    };
+    16.do {|i|
+      Synth(\event, [\freq, (60 + i).midicps]);
+      0.25.wait();
+    }
+  }.fork();
+)
 
 
 /* Further mechanisms for sequencing
