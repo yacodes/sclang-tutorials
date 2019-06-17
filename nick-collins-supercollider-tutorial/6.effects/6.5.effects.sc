@@ -316,3 +316,13 @@ b = Buffer.read(s, Platform.resourceDir +/+ "sounds/a11wlk01.wav");
  *
  * More complicated effects arise from particular sound analysis models.
  */
+
+/* Week 6 exercise:
+ * Build an example patch with a global effects unit (such as a reverb or distortion).
+ *
+ * You should construct the effects unit using a separate Synth;
+ * this effect should be applied to any other Synths
+ * (which might use any of the SynthDefs you've built so far on the course).
+ *
+ * Execution order is critical here and you will need to understand 6.3 to achieve this.
+ */
