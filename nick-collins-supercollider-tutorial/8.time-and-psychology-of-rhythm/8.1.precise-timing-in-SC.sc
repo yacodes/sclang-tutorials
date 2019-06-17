@@ -192,7 +192,7 @@ s.latency = 0.01;
 (
   {
     inf.do {|i|
-      s.bind { Synth(\testbleep); };
+      s.bind { Synth(\testbleep2); };
       [0.5, 0.25, 0.001].wrapAt(i).wait();
       // Note 0.001 milliseconds wait is under control period size, 64/44100 = 0.0014512471655329
     }
