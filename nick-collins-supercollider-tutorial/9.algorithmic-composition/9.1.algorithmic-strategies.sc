@@ -335,3 +335,139 @@ gauss(1.0, 0.1);
 /* For fixed and variable order Markovian modeling see also
  * the MathLib and ContextSnake Quarks.
  */
+
+
+/* Search
+ *
+ * Search is a fundamental operation in computer algorithms.
+ * Musical parameterisations lead to combinatorially explosive search spaces,
+ * and issues of computational tractability.
+ *
+ * Heuristics are rules of thumb to cut down the amount of brute search by pruning the search tree.
+ *
+ * Charles Ames differentiates:
+ *
+ * Comparative search:
+ * an exhaustive search through all options.
+ * Can find an optimal solution, but usually too computationally intensive
+ *
+ * Constrained search:
+ * finds a `good' solution by approximate methods, i.e., heuristics.
+ *
+ * An early strategy (used back in 1955 by Hiller and Isaacson's) was generate and test.
+ * Random numbers are generated until they pass a test.
+ * The passed number becomes the latest choice, and a new selection is then made.
+ * Alternatively, we might restrict generations
+ * to only acceptable options in the first place (by heuristics).
+ *
+ * More complicated strategies include back tracking
+ * (jumping back to an earlier decision point when a path has led to an impasse)
+ * and dynamic programming (greedy selection of the best option according
+ * to a cost function at any point, to comparison of multiple paths
+ * taking into account all steps but keeping down the proliferation
+ * of possible paths by only following best scoring paths to any given branching point).
+ *
+ * You should see that any machinery from AI
+ * (whether GOFAI symbolic or connectionist) may be imported to problems of musical search.
+ *
+ * Generate and test:
+ */
+(
+  var currentvalue = rrand(60, 72);
+  var generateandtest;
+
+  generateandtest = {|previous=60|
+    var number = rrand(24, 127);
+    var keeplooking;
+
+    // Keep searching until a number passes the tests
+    while {
+      keeplooking = false; // Can only fail
+
+      /* Note we could replace this test with
+       * just generating number in the allowable range to start with
+       */
+      if (abs(number - previous) > 12) {
+        keeplooking= true;
+      };
+
+      // Avoid certain intervals
+      if (#[-5, -3, 4, 7, 11].includes(number - previous)) {
+        keeplooking= true;
+      };
+
+      ((number.asString()) ++ (if (keeplooking, " rejected", "accepted"))).postln();
+
+      keeplooking;
+    }, {
+      /* No need to do anything here,
+       * all done in while test function
+       */
+      number = rrand(24, 127);
+    };
+
+    number;
+  };
+
+  {
+    20.do {
+        currentvalue = generateandtest.(currentvalue);
+        Synth(\acsound, [\freq, currentvalue.midicps]);
+        0.25.wait();
+    };
+  }.fork();
+)
+
+
+/* Sonification of mathematics
+ *
+ * Given the wonderful resources of mathematics,
+ * it's very tempting to translate mathematical structures into musical output.
+ *
+ * But be warned that the transformation does not often make perceptual sense,
+ * and can be very contrived.
+ *
+ * On the other hand,
+ * it may lead you to stimulating output you wouldn't otherwise have conceived.
+ *
+ * Logistic map function used to generate pitch values:
+ */
+(
+  var currentvalue = 1.0.rand();
+  var logisticmap, r;
+  r = 3.74;
+  logisticmap = {|previous = 60|
+    ((1.0 - previous) * previous * r).postln();
+  };
+
+  {
+    50.do{
+      currentvalue = logisticmap.(currentvalue);
+      /* Must convert from the value
+      * in the range 0.0 to 1.0 to a musically useful pitch value
+      *
+      * Quartertones here
+      */
+      Synth(\acsound, [\freq, (60 + ((currentvalue * 12).round(0.5))).midicps]);
+      0.125.wait();
+    };
+  }.fork();
+)
+
+/* The example here demonstrates how the logistic map acts
+ * as a generator of values at the required rate for musical events set required,
+ * much as a UGen is a (usually much faster running) generator of sample values at audio rate.
+ *
+ * Analogous networks of number generation and modification (synthesis and processing)
+ * can be formed in algorithmic composition
+ * to determine musical parameter values for event streams.
+ *
+ * We'll continue this next year in advanced computer music
+ * by discussing mappings and musical modeling in general.
+ *
+ * For example, we haven't touched here on data-driven modeling
+ * where a corpus is automatically analyzed to create a generative model.
+ *
+ * You may still approach such things intuitively,
+ * by formulating rules via your own personal analyses of musical style.
+ */
