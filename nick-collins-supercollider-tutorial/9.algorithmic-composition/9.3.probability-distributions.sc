@@ -185,3 +185,11 @@ p.plot(); // pdf
 c = ~cumulative.value(p);
 c.plot();	// cdf
 Array.fill(1000, {~draw.value(1.0.rand, c) * 6}).sort.plot() // Choose values; multiply by 6 to get back integer indices
+
+/* @TODO Week 9 exercise:
+ * Plan an algorithmic composition, deciding upon style,
+ * and algorithmic structuring.
+ *
+ * You might like to consider:
+ * what aspects of the work could change with each run of the program?
+ */
