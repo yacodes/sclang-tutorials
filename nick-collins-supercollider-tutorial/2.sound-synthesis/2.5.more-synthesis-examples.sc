@@ -1,6 +1,9 @@
 Server.local.boot;
 Server.local.reboot;
 Server.local.quit;
+FreqScope();
+Server.local.scope();
+s.queryAllNodes();
 
 // Primitive Chorus Effect
 {Mix(Saw.ar([440,443,437],0.1))}.scope
