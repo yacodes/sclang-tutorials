@@ -29,3 +29,5 @@
  * This route is not recommended for beginners!
  * The source is available under anonymous checkout from the version control system on github.
  */
+
+// @TODO Week 1 exercise: Explore SuperCollider!
