@@ -1,10 +1,13 @@
-Server.local.boot;
 Server.local.reboot;
 Server.local.quit;
-FreqScope();
-Server.local.scope();
 s.queryAllNodes();
 
+(
+  Server.local.boot;
+  Server.local.scope;
+  FreqScope.new;
+  Server.local.plotTree;
+)
 
 /* Some useful ways to use Synths
  *
@@ -38,6 +41,7 @@ a.set(\freq, 330); // Change frequency!
 
 // A common mistake is to try to pass a UGen as an argument:
 a.set(\freq, MouseX.kr(220, 440)); // WON'T WORK, WILL CRASH 'ERROR: can't set a control to a UGen'
+s.freeAll
 
 /* You must have plugged together all the UGens earlier on within the {}.
  * More explanation of this later on
@@ -52,3 +56,4 @@ a = {|freq = 440, amp = 0.1| SinOsc.ar(freq) * amp}.play();
  * run this line multiple times
  */
 a.set(\freq, rrand(220, 440), \amp, rrand(0.05, 0.2));
+s.freeAll

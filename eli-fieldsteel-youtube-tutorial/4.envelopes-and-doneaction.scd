@@ -134,3 +134,7 @@ Env.adsr.plot;
     sig = VarSaw.ar(SinOsc.kr(freq).range(500, 1000)) * env;
   }.play
 )
+
+x.set(\gate, 1);
+x.set(\gate, -1);
+x.free;

@@ -1,8 +1,12 @@
-Server.local.boot;
+(
+  Server.local.boot;
+  Server.local.scope;
+  FreqScope.new;
+  Server.local.plotTree;
+)
+
 Server.local.reboot;
 Server.local.quit;
-FreqScope();
-Server.local.scope();
 s.queryAllNodes();
 
 /* Essentials

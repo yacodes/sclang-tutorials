@@ -1,9 +1,13 @@
-Server.local.boot;
 Server.local.reboot;
 Server.local.quit;
-FreqScope();
-Server.local.scope();
 s.queryAllNodes();
+
+(
+  Server.local.boot;
+  Server.local.scope;
+  FreqScope.new;
+  Server.local.plotTree;
+)
 
 /* Sound Synthesis in SuperCollider: Modulation Synthesis
  *

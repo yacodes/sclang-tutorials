@@ -1,9 +1,13 @@
-Server.local.boot;
 Server.local.reboot;
 Server.local.quit;
-FreqScope();
-Server.local.scope();
 s.queryAllNodes();
+
+(
+  Server.local.boot;
+  Server.local.scope;
+  FreqScope.new;
+  Server.local.plotTree;
+)
 
 
 /* Mul and Add (and arguments to UGens)
@@ -30,6 +34,7 @@ s.queryAllNodes();
  * (those 'arguments') by using the colon syntax:
  */
 {SinOsc.ar(mul: 0.1)}.scope();
+s.freeAll
 
 /* For audio outputs
  * which this ar rate SinOsc is,
@@ -44,11 +49,13 @@ s.queryAllNodes();
 
 // and here is a sound whose amplitude is at a more reasonable volume:
 {SinOsc.ar(mul: 0.1)}.scope();	// Loud! defaults are 440 Hz, amplitude multiplier 2.0
+s.freeAll
 
 /* You can see that the mul: part of the code is setting up an amplitude multiplier,
  * that is, it scales the signal on the y axis.
  */
 {SinOsc.ar(mul: MouseY.kr(1.0, 0.1))}.scope(); // Demo of amplitude scaling
+s.freeAll
 
 /* There is another standard thing you will see happening to signals,
  * and that is offsetting (translating) on the y axis.
@@ -61,15 +68,17 @@ s.queryAllNodes();
  * appropriately to the expected input values required.
  */
 {SinOsc.ar(mul: MouseX.kr(0.1, 1.0), add: MouseY.kr(0.9, -0.9))}.scope();
+s.freeAll
 
 (
   {
     // Cutoff values need to be sensible frequencies in Hz; here sine output turned from -1 to 1 into 2000+-1700
     var cutoff =	SinOsc.ar(1, mul: MouseX.kr(0.0, 1700.0), add: 2000.0);
     // var cutoff = SinOsc.ar(1) * 1700.0 + 2000.0; // Same thing
-    LPF.ar(WhiteNoise.ar, freq:cutoff);
+    LPF.ar(WhiteNoise.ar, freq: cutoff);
   }.scope();
 )
+s.freeAll
 
 // There is a shortcut for the mul and add inputs given by using the * and + symbols.
 {0.1 * SinOsc.ar}.scope();
@@ -128,9 +137,11 @@ SinOsc; // Or select SinOsc and do cmd+J for the source code definition of this 
 
 // Explicit use of constants in all inputs:
 {SinOsc.ar(440, 0.0, 0.1, 0.0)}.scope();
+s.freeAll
 
 // Plugging a UGen, a MouseX control, into the frequency input:
 {SinOsc.ar(MouseX.kr(440, 880), 0.0, 0.1, 0.0)}.scope();
+s.freeAll
 
 /* Having the frequency argument as before (it is the first input, remember),
  * using the colon to refer to a particular input, and accepting defaults for the rest:
@@ -155,6 +166,7 @@ SinOsc; // Or select SinOsc and do cmd+J for the source code definition of this 
  * Using one SinOsc to modulate the frequency of another:
  */
 {SinOsc.ar(SinOsc.ar(3, mul: 40, add: 440), 0, 0.1)}.scope();
+s.freeAll
 
 /* The inner SinOsc is the modulator.
  * 3 times per second, it varies between +-40 (mul scaling).

@@ -1,9 +1,13 @@
-Server.local.boot;
 Server.local.reboot;
 Server.local.quit;
-FreqScope();
-Server.local.scope();
 s.queryAllNodes();
+
+(
+  Server.local.boot;
+  Server.local.scope;
+  FreqScope.new;
+  Server.local.plotTree;
+)
 
 
 /* Sound Synthesis in SuperCollider: Subtractive and Additive Synthesis
@@ -92,6 +96,8 @@ FreqScope.new();
  */
 {LPF.ar(WhiteNoise.ar(0.1), 1000)}.scope();
 
+s.freeAll
+
 /* The LPF is a Low Pass Filter which tails off energy above its cutoff frequency,
  * which is 1000Hz in this example
  */
@@ -116,6 +122,8 @@ Line.kr(10000, 1000, 10);
 // So instead of the fixed value 1000, the Line UGen goes in that second slot
 {LPF.ar(WhiteNoise.ar(0.1), Line.kr(10000,  1000, 10))}.scope() // Listen for ten seconds at least to hear the full effect
 
+s.freeAll
+
 
 /* There are lots of possible sources and lots of possible filters (try these help files)
  *
@@ -127,7 +135,7 @@ Line.kr(10000, 1000, 10);
 [Blip];
 
 // Noise Sources:
-[PinkNoise;
+[PinkNoise];
 [LFNoise0];
 
 // Some example filters:
@@ -137,6 +145,9 @@ Line.kr(10000, 1000, 10);
 
 // Example of plugging one source into a filter:
 {Resonz.ar(LFNoise0.ar(400), 1000, 0.1)}.scope();
+
+s.freeAll;
+s.boot
 
 // Again using the Line generator to change the filter centre frequency over time
 {Resonz.ar(LFNoise0.ar(400), Line.kr(10000, 1000, 10), 0.1)}.scope();
@@ -150,7 +161,7 @@ Line.kr(10000, 1000, 10);
     line = Line.kr(10000, 1000, 10);
 
     // The filtered output is the input source filtered by Resonz with a line control for the resonant frequency
-    filter = Resonz.ar(source, line, 0.1);
+    filter = Resonz.ar(source, line, 0.0005);
 
     // Last thing is returned from function in curly brackets, i.e. this is the final sound we hear
     filter;
@@ -166,7 +177,7 @@ Line.kr(10000, 1000, 10);
  * The classic building block in computer music is the sine tone
  */
 {SinOsc.ar}.scope(); // Defaults to a concert A (440Hz)
-
+s.freeAll
 
 // Here is one way to get two sine tones at once:
 {SinOsc.ar(400, 0, 0.1) + SinOsc.ar(660, 0, 0.1)}.scope();
@@ -197,6 +208,8 @@ Line.kr(10000, 1000, 10);
 // Each successive element in the list will be placed on one channel:
 {SinOsc.ar([400], 0, 0.1)}.scope(); // One channel sound (see the scope)
 
+s.freeAll
+
 {SinOsc.ar(400, 0, 0.1)}.scope(); // Also one channel sound no array brackets are needed for a single number
 
 {SinOsc.ar([400, 660], 0, 0.1)}.scope(); // Two channel sound (see the scope)
@@ -212,6 +225,8 @@ Line.kr(10000, 1000, 10);
  * One method is to wrap the multichannel sound with a Mix UGen:
  */
 {Mix(SinOsc.ar([400, 660], 0, 0.1))}.scope(); // A two channel signal put through Mix turns into mono
+
+s.freeAll
 
 // And then, of course, Pan2 allows me to place this in the stereo field:
 {Pan2.ar(Mix(SinOsc.ar([400, 660], 0, 0.1)), MouseX.kr(-1, 1))}.scope(); // A two channel signal put through Mix turns into mono
@@ -238,6 +253,8 @@ Line.kr(10000, 1000, 10);
   }.scope();
 )
 
+s.freeAll
+
 /* Square wave: Sum of odd harmonics, no even,
  * amplitude falls as off 1/harmonicnumber;
  * closest 'real' waveform is a clarinet tone
@@ -262,13 +279,15 @@ Line.kr(10000, 1000, 10);
   {
     var n = 10;
     var wave = Mix.fill(10, {|i|
-      var harmonicnumber= 2 * i + 1; // Odd harmonics only
-      var mult= ((-1) ** ((harmonicnumber - 1) / 2)) * (1.0 / (harmonicnumber * harmonicnumber));
-      SinOsc.ar(440 * index) * mult;
+      var harmonicnumber = 2 * i + 1; // Odd harmonics only
+      var mult = ((-1) ** ((harmonicnumber - 1) / 2)) * (1.0 / (harmonicnumber * harmonicnumber));
+      SinOsc.ar(440 * i) * mult;
     }) / n;
     Pan2.ar(wave, 0.0); // Stereo, panned centre
   }.scope();
 )
+
+s.freeAll
 
 /* Bell sound example:
  *
@@ -277,6 +296,8 @@ Line.kr(10000, 1000, 10);
  * how the frequencies are calculated from the multipliers
  */
 500 * [0.5, 1, 1.19, 1.56, 2, 2.51, 2.66, 3.01, 4.1];
+
+s.freeAll
 
 // Bell spectra, all partials the same volume
 {Mix(SinOsc.ar(500 * [0.5, 1, 1.19, 1.56, 2, 2.51, 2.66, 3.01, 4.1], 0, 0.1))}.scope();
@@ -287,6 +308,7 @@ Line.kr(10000, 1000, 10);
  */
 {Mix(SinOsc.ar(500 * [0.5, 1, 1.19, 1.56, 2, 2.51, 2.66, 3.01, 4.1], 0, 0.1 * [0.25, 1, 0.8, 0.5, 0.9, 0.4, 0.3, 0.6, 0.1]))}.scope();
 
+s.freeAll
 
 /* Here is a generalisable patch that uses the variable n
  * to hold the number of sine tones desired for each run of the code:
