@@ -21,3 +21,6 @@ s.quit;
 {PinkNoise.ar(440, 1, 1, 0)}.play;
 
 {LFNoise0.ar(500, 1, 0)}.play
+s.freeAll
+
+{LFNoise0.ar(freq: 500, mul: 1, add: 0)}.play

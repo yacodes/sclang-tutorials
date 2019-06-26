@@ -44,6 +44,7 @@ s.queryAllNodes();
     carrier * modulator;
   }.scope();
 )
+s.freeAll
 
 /* For simple sine waves, the spectrum ends up with two frequencies (two sidebands),
  * at C+M and C-M, where C is the carrier frequency and M is the modulator frequency.
@@ -69,6 +70,7 @@ s.queryAllNodes();
  */
 {SinOsc.ar(440, 0, 0.5)}.scope(); // Bipolar, -0.5 to 0.5
 {SinOsc.ar(440, 0, 0.5, 0.5)}.scope(); // Unipolar, 0 to 1 (0.5 plus or minus 0.5)
+s.freeAll
 
 (
   {
