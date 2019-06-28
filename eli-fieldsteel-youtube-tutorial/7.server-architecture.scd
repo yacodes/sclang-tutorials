@@ -160,3 +160,10 @@ y.free
 ~fxGrp = Group.after(~srcGrp)
 ~fxGrp.free
 y = Synth.new(\reverb, [\in, ~reverbBus2], ~fxGrp);
+
+~srcGrp = Group.new
+~srcGrp.set(\decay, 1);
+~srcGrp.set(\dens, 2);
+~srcGrp.set(\fund, 300);
+~srcGrp.free
+~srcGrp.freeAll
