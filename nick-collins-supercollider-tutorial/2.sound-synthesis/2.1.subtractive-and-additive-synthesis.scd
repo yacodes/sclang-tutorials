@@ -253,6 +253,8 @@ s.freeAll
   }.scope();
 )
 
+FreqScope.new
+
 s.freeAll
 
 /* Square wave: Sum of odd harmonics, no even,

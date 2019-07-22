@@ -22,17 +22,24 @@ Env([1, 0, 1], [1, 1]).plot
 Env([0, 1, 0], [1.0, 0.5]).plot
 
 // Linen has attackTime, sustainTime, releaseTime, level, curve
+(
 Env.linen(0.03, 0.5, 0.1).plot
+)
 
 /* attackTime, decayTime, sustainLevel, releaseTime, peakLevel, curve
 * note that the sustain portion is not shown in time;
 * this particular envelope type deals with variable hold times,
 * and the hold is missed out in the plot
 */
-Env.adsr(0.01, 0.5, 0.5, 0.1, 1.0, 0).plot
+(
+Env.adsr(0.01, 0.5, 0.5, 0.1, 1.0, 0).plot;
+)
+
 
 // Arguments attackTime, releaseTime, level, curve: good for percussive hit envelopes
-Env.perc(0.05, 0.5, 1.0, 0).plot
+(
+  Env.perc(0.05, 0.5, 1.0, 0).plot;
+)
 
 // ———————
 // Envelopes for Synthesis
