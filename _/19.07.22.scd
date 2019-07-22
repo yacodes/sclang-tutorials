@@ -7,10 +7,10 @@ s.boot
     var freqPartials = [0.5, 1, 1.19, 1.56, 2, 2.51, 2.66, 3.01, 4.1];
     var ampPartials = [0.25, 1, 0.8, 0.5, 0.9, 0.4, 0.3, 0.6, 0.1];
 
-    var sig = Mix(freqPartials.collect({|index|
+    var sig = Mix(freqPartials.collect({|v, i|
       SinOsc.ar(
-        freq: freq * freqPartials[index],
-        mul: (1 / ampPartials.size) * ampPartials[index],
+        freq: freq * v,
+        mul: (1 / ampPartials.size) * ampPartials[i],
       );
     }));
 
@@ -23,4 +23,12 @@ s.boot
   }).add;
 )
 
-Synth.new(\test, [\freq, 440, \sustain, 8])
+Synth.new(\test, [\freq, 880, \sustain, 2])
+
+4.collect({|i|
+(150*10^i + 3)/9
+})
+
+[1, 2, 4, 8, 9, 16, 18, 27, 32, 36, 54, 64, 72, 81].collect({|i, val|
+  1 / val
+})
