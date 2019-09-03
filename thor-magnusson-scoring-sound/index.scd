@@ -717,12 +717,278 @@ Pbind(\freq, 1000, \dur, 0.25).play;
 // the synthdef has the conventional 'freq' and 'amp' arguments, but also our own 'cutoff'
 (
   SynthDef(\patsynth1, { arg out=0, freq=440, amp=0.1, pan=0, cutoff=1000, gate = 1;
-    var signal = MoogFF.ar( Saw.ar(freq, amp), cutoff, 3);
+    var signal = MoogFF.ar(Saw.ar(freq, amp), cutoff, 3);
     var env = EnvGen.kr(Env.adsr(), gate, doneAction: 2);
-    Out.ar(out, Pan2.ar(signal, pan, env) );
+    Out.ar(out, Pan2.ar(signal, pan, env));
   }).add;
 )
 // we play our 'patsynth1' instrument, and control the cutoff parameter
 Pbind(\instrument, \patsynth1, \freq, 100, \cutoff, 300, \amp, 0.6).play;
 // try this as well:
 Pbind(\instrument, \patsynth1, \freq, 100, \cutoff, 3000, \amp, 0.6).play;
+
+Pbind(\instrument, \patsynth1, \freq, 100, \amp, 0.6, \dur, 0.5).play;
+Pbind(\instrument, \patsynth1, \freq, 100, \amp, 0.6, \dur, 0.5, \sustain, 0.1).play;
+
+// here we format it differently, into pairs of keys and values
+(
+  Pbind(
+    \instrument, \patsynth1,
+    \freq, Pseq([100, 200, 120, 180], inf), // sequencing frequency
+    \amp, 0.6,
+    \dur, 0.5
+  ).play;
+)
+
+s.boot
+
+// we can use list patterns for values to any keys:
+(
+  Pbind(
+    \instrument, \patsynth1,
+    \freq, Prand([100, 200, 120, 180], inf),
+    \amp, Pseq([0.3, 0.6], inf),
+    \dur, Pseq([0.125, 0.25, 0.5, 0.25], inf),
+  ).play;
+)
+
+(
+  Pbind(
+    \instrument, \patsynth1,
+    \freq, Pseq([100, 200, 120, 180], inf),
+    \cutoff, Pseq([1000, 2000, 3000], inf), // only 3 items in the list - it loops
+    \amp, Pseq([0.3, 0.6], inf),
+    \dur, Pseq([0.125, 0.25, 0.5, 0.25], inf),
+  ).play;
+)
+
+// here we put a pattern into a variable "a"
+(
+  a = Pdef.new(\example1,
+    Pbind(\instrument, \patsynth1, // using our sine synthdef
+      \freq, Pseq([220, 440, 660, 880], inf), // freq arg
+      \dur, Pseq([0.25, 0.5, 0.25, 0.5], inf); // dur arg
+    )
+  );
+)
+a.play;
+a.pause;
+a.resume;
+// but we don't need to:
+(
+  Pdef(\example2,
+    Pbind(\instrument, \patsynth1, // using our sine synthdef
+      \freq, Pseq.new([720, 770, 990, 880], inf), // freq arg
+      \dur, Pseq.new([0.25, 0.5, 0.25, 0.5], inf); // dur arg
+    )
+  );
+)
+Pdef(\example2).play;
+Pdef(\example2).pause;
+Pdef(\example1).pause;
+Pdef(\example2).resume;
+// Now, let's play them both together with a bit of timeshift
+(
+  Pdef(\example1).quant_([2, 0, 0]);
+  Pdef(\example2).quant_([2, 0.5, 1]); // offset by half a beat
+  Pdef(\example1).play;
+  Pdef(\example2).play;
+)
+// and without stopping we redefine the example1 pattern:
+(
+  Pdef(\example1,
+    Pbind(
+      \instrument,
+      \patsynth1, // using our sine synthdef
+      \freq, Pseq.new([Pseq.new([220, 440, 660, 880], 4), Pseq.new([220, 440, 660, 880], 4) * 1.5], inf),
+      \dur, Pseq.new([0.25, 0.125, 0.125, 0.25, 0.5], inf); // dur arg
+    )
+  );
+)
+
+
+// --------------
+// The TempoClock
+t = TempoClock.new;
+t.tempo = 1;
+// wait for 4 beats (4 secs);
+// beat variable is fractional
+t.sched(4, { arg beat, sec; [beat, sec].postln; });
+
+t = TempoClock.new;
+t.tempo = 4; // we make the tempo 240 bpm (240/60 = 4)
+// wait for 4 beats (1 sec);
+// abs beat variable
+t.schedAbs(4, { arg beat, sec; [beat, sec].postln; });
+
+t = TempoClock.new;
+t.tempo = 1;
+t.schedAbs(0, { arg beat, sec; [beat, sec].postln; 1});
+
+s.boot
+
+t = TempoClock.new;
+t.tempo = 1;
+t.schedAbs(0, { arg beat, sec; [beat, sec].postln; 1});
+t.schedAbs(0, { arg beat, sec; "_Scramble_".scramble.postln; 0.5});
+
+// our synth
+(
+  SynthDef(\clocksynth, { arg out=0, freq=440, amp=0.5, pan=0, cutoff=1000, gate = 1;
+    var signal = MoogFF.ar( Saw.ar(freq, amp), cutoff, 3);
+    var env = EnvGen.kr(Env.perc(), gate, doneAction: 2);
+    Out.ar(out, Pan2.ar(signal, pan, env) );
+  }).add;
+)
+
+s.boot
+
+// the clock
+t = TempoClock.new;
+t.tempo = 2;
+(
+  t.schedAbs(0, { arg beat, sec;
+    Synth(\clocksynth, [\freq, 440]);
+    if(beat%4==0, { Synth(\clocksynth, [\freq, 440/4, \amp, 1]); });
+    if(beat%2==0, { Synth(\clocksynth, [\freq, 440*4, \amp, 1]); });
+    1
+  });
+)
+
+// @NOTE
+// When you get an error message that sounds like “… cannot be called from this process” then you
+// need to use an AppClock or put the function into a .defer function: {myfunction.value}.defer
+(
+  var clock, waitTime;
+  waitTime = 2;
+  clock = TempoClock(2, 0);
+  { // a fork
+    "starting the program".postln;
+    { // and we fork again (play 10 sines)
+    10.do({|i|
+      Synth(\clocksynth, [\freq, 1000+(rand(1000))]);
+      "synth nr : ".post; i.postln;
+      (waitTime/10).wait; // wait for 100 milliseconds
+    });
+    "end of 1st fork".postln;
+  }.fork(clock);
+  waitTime.wait;
+  "finished waiting, now we play the 2nd fork".postln;
+  { // and now we play another fork where the frequency is lower
+    20.do({|i|
+      Synth(\clocksynth, [\freq, 100+(rand(1000))]);
+      "synth nr : ".post; i.postln;
+      (waitTime/10).wait;
+    });
+    "end of 2nd fork".postln;
+  }.fork(clock);
+  "end of the program".postln;
+}.fork(clock);
+)
+
+// GUI Control
+// we create a synth (here a oscillator with 16 harmonics)
+(
+  SynthDef(\simpleSynth, {|freq, amp|
+    var signal, harmonics;
+    harmonics = 16;
+    signal = Mix.fill(harmonics, {arg i; SinOsc.ar(freq * (i + 1), 1.0.rand, amp * harmonics.reciprocal /(i + 1))});
+    Out.ar(0, signal!2);
+  }).add;
+)
+
+(
+  var synth, win, freqsl, ampsl;
+  // create a GUI window
+  win = Window.new("simpleSynth", Rect(100, 100, 300, 90), false).front;
+  // and place the frequency and amplitude sliders in the window
+  StaticText.new(win, Rect(10,10, 160, 20)).font_(Font("Helvetica", 9)).string_("freq");
+  freqsl = Slider.new(win, Rect(40,10, 160, 24)).value_(1.0.rand).action_({arg sl; synth.set(\freq, sl.value*1000;) });
+
+  StaticText.new(win, Rect(10,46, 160, 20)).font_(Font("Helvetica", 9)).string_("amp");
+  ampsl = Slider.new(win, Rect(40,46, 160, 24)).value_(1.0.rand).action_({arg sl; synth.set(\amp, sl.value) });
+
+  // a button to start and stop the synth. If the button value is 1 we start it, else stop it
+  Button.new(win, Rect(220, 10, 60, 60)).states_([["create"], ["kill"]]).action_({arg butt;
+    if(butt.value == 1, {
+      // the synth is created with freq and amp values from the sliders
+      synth = Synth(\simpleSynth, [\freq, freqsl.value*1000, \amp, ampsl.value]);
+    },{
+      synth.free;
+    });
+  });
+)
+
+s.boot
+
+
+// -------------------------------------------------------
+// Chapter 4 - Interfaces and Communication (GUI/MIDI/OSC)
+// @TODO MIDI - Musical Instrument Digital Interface
+// @TODO OSC - Open Sound Control
+// @TODO GUI - Graphical User Interfaces
+(
+  w = Window("SC Window", Rect(400, 64, 650, 360)).front;
+  EnvelopeView(w, Rect(20, 220, 200, 80))
+  .drawLines_(true)
+  .selectionColor_(Color.red)
+  .drawRects_(true)
+  .resize_(5)
+  .action_({arg b; [b.index,b.value].postln})
+  .thumbSize_(5)
+  .value_([[0.0, 0.1, 0.5, 1.0],[0.1,1.0,0.8,0.0]]);
+)
+
+
+
+
+// —————————————————————————————————————————————————
+// Part 2
+// —————————————————————————————————————————————————
+// ------------------------------
+// Chapter 5 - Additive Synthesis
+// we add 500 oscillators together and the CPU is less than 20%
+{({SinOsc.ar(4444.4.rand, 0, 0.005)}!500).sum}.play
+s.freeAll
+
+{[SinOsc.ar(440), SinOsc.ar(440), SinOsc.ar(440)+SinOsc.ar(440)]}.plot
+// try this as well
+{a = SinOsc.ar(440, 0, 0.5); [a, a, a+a]}.plot
+
+{[SinOsc.ar(440), SinOsc.ar(220), SinOsc.ar(440)+SinOsc.ar(220)]}.plot
+
+{[SinOsc.ar(440), SinOsc.ar(440, pi), SinOsc.ar(440)+SinOsc.ar(440, pi)]}.plot
+
+{SinOsc.ar(440, 0, 10).clip(-0.75, 0.75)}.scope
+{SinOsc.ar(440, 0, 10).clip(-0.75, 0.75)}.plot
+s.freeAll
+
+{Mix.fill(10, {SinOsc.ar(rrand(200,2000), 0, 0.1)})}.freqscope
+
+s.boot
+
+{Saw.ar(880)}.freqscope
+
+// adding two waves - the second is the octave (second harmonic) of the first
+{(SinOsc.ar(440,0, 0.4) + SinOsc.ar(880, 0, 0.4))!2}.freqscope
+s.freeAll
+
+// here we add four harmonics (of equal amplitude) together
+(
+  {
+    var freq = 200;
+    SinOsc.ar(freq, 0, 0.2) +
+    SinOsc.ar(freq*2, 0, 0.2) +
+    SinOsc.ar(freq*3, 0, 0.2) +
+    SinOsc.ar(freq*4, 0, 0.2)
+    !2
+  }.freqscope
+)
+
+s.freeAll
+{Blip.ar(440, MouseX.kr(1, 20))}.scope // using the Mouse
+{Blip.ar(440, MouseX.kr(1, 20))}.freqscope
+{Blip.ar(440, Line.kr(1, 22, 3) )}.play
+
+// Creating wave forms out of sinusoids
+
