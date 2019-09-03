@@ -605,3 +605,124 @@ s.freeAll
 
 // ----------------------------------
 // Chapter 3 - Controlling the Server
+s.boot
+s.reboot
+(
+  Routine({
+    inf.do({arg i;
+      "iteration: ".post; i.postln;
+      0.25.wait;
+    })
+  }).play
+)
+s.freeAll
+
+// Equals
+fork{
+  inf.do({arg i;
+    "iteration: ".post; i.postln;
+    0.25.wait;
+  })
+}
+
+// this won't work, as there is no routine involved
+100.do({arg i; "iteration: ".post; i.postln; 0.25.wait; });
+// but this will work, as we are not asking the loop to wait:
+100.do({arg i; "iteration: ".post; i.postln; })
+
+// A routine can be played with different clocks (TempoClock, SystemClock, and AppClock)
+s.boot
+(
+  r = Routine.new({
+    10.do({ arg a;
+      a.postln;
+      1.wait;
+    });
+    0.5.wait;
+    "routine finished!".postln;
+  });
+)
+
+SystemClock.play(r); // and then we run it
+r.reset // we have to reset the routine to start it again:
+AppClock.play(r); // here we tell AppClock to play routine r
+r.play(AppClock) // or we can use this syntax
+r.stop; // stop the routine
+r.play; // try to start the routine again... It won't work.
+
+// In the last line above we experience that we can’t restart a routine after it has stopped.
+// Here is where Tasks come in handy, but they are pauseable processes that behave like routines.
+// (Check the Task helpfile).
+s.reboot
+(
+  t = Task({
+    inf.do({arg i;
+      "iteration is: ".post; i.postln;
+      0.25.wait;
+    })
+  });
+)
+t.play;
+t.pause;
+t.resume;
+t.stop;
+t.play;
+t.reset;
+
+
+s.boot
+(
+  SynthDef(\ch3synth1, {arg freq=333, amp=0.4, pan=0.0, dur=0.41; // the arguments
+    var signal, env;
+    env = EnvGen.ar(Env.perc(0.001, dur), doneAction:2); // doneAction gets rid of the synth
+    signal = LFTri.ar(freq, 0, amp) * env; // the envelope multiplies the signal
+    signal = Pan2.ar(signal, pan);
+    Out.ar(0, signal);
+  }).add;
+)
+
+(
+  m = ([0, 1, 5, 6, 10, 12] + 48).midicps;
+  m = m.scramble; // try to re-evaluate only this line
+  t = Task({
+    inf.do({arg i;
+      Synth(\ch3synth1, [\freq, m.wrapAt(i)]);
+      0.25.wait;
+    })
+  });
+  t.play;
+)
+
+(
+  f = fork{
+    inf.do({arg i;
+      m = m.scramble;
+      "SCRAMBLING".postln;
+      4.8.wait; // why did I choose 4.8 second wait.
+    })
+  }
+)
+s.freeAll
+
+// Patterns
+s.boot
+().play; // run this Event and we observe the posting of default arguments
+Pbind().play; // the event arguments are used in the Pbind.
+s.freeAll
+s.reboot
+
+// here we have a Pattern that binds the frequency key to the value of 1000
+Pbind(\freq, 1000, \dur, 0.25).play;
+
+// the synthdef has the conventional 'freq' and 'amp' arguments, but also our own 'cutoff'
+(
+  SynthDef(\patsynth1, { arg out=0, freq=440, amp=0.1, pan=0, cutoff=1000, gate = 1;
+    var signal = MoogFF.ar( Saw.ar(freq, amp), cutoff, 3);
+    var env = EnvGen.kr(Env.adsr(), gate, doneAction: 2);
+    Out.ar(out, Pan2.ar(signal, pan, env) );
+  }).add;
+)
+// we play our 'patsynth1' instrument, and control the cutoff parameter
+Pbind(\instrument, \patsynth1, \freq, 100, \cutoff, 300, \amp, 0.6).play;
+// try this as well:
+Pbind(\instrument, \patsynth1, \freq, 100, \cutoff, 3000, \amp, 0.6).play;
