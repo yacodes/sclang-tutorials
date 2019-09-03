@@ -991,4 +991,55 @@ s.freeAll
 {Blip.ar(440, Line.kr(1, 22, 3) )}.play
 
 // Creating wave forms out of sinusoids
+// a) here is an array with 5 items:
+Array.fill(5, {arg i; i.postln;});
+// b) this is the same as (using a shortcut):
+{arg i; i.postln;}.dup(5)
+// c) or simply (using another shortcut):
+{arg i; i.postln;}!5
+// d) we can then sum the items in the array (add them together):
+Array.fill(5, {arg i; i.postln;}).sum;
+// e) we could do it this way as well:
+sum({arg i; i.postln;}.dup(5));
+// f) or this way:
+({arg i; i.postln;}.dup(5)).sum;
+// g) or this way:
+({arg i; i.postln;}!5).sum;
+// h) or simply this way:
+sum({arg i; i.postln;}!5);
 
+s.freeAll
+// The Saw UGen is “band-limited” which
+// means that it does not alias and mirror back into the audible range. (Compare with LFSaw which will
+// alias - you can both hear and see the harmonics mirror back into the audio range).
+{Saw.ar(MouseX.kr(100, 1000))}.freqscope
+{LFSaw.ar(MouseX.kr(100, 1000))}.freqscope
+
+// A ‘Saw’ wave with 30 harmonics:
+(
+  f = {
+    ({arg i;
+      var j = i + 1;
+      SinOsc.ar(300 * j, 0, j.reciprocal * 0.5);
+    } ! 30).sum // we sum this function 30 times
+    !2
+  }; // and we make it a stereo signal
+)
+f.plot; // let's plot the wave form
+f.play; // listen to it
+f.freqscope; // view and listen to it
+
+// By inverting the phase (using pi), we get an inverted wave form.
+s.freeAll
+(
+  f = {
+    Array.fill(30, {arg i;
+      var j = i + 1;
+      SinOsc.ar(300 * j, pi, j.reciprocal * 0.5) // note pi
+    }).sum // we sum this function 30 times
+    !2
+  }; // and we make it a stereo signal
+)
+f.plot; // let's plot the wave form
+f.play; // listen to it
+f.freqscope; // view and listen to it
