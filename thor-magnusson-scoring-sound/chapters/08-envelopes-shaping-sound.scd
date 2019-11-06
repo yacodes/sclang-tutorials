@@ -105,3 +105,298 @@ EnvGen.ar(envelope, gate, levelScale, levelBias, timeScale, doneAction);
 // • DemandEnvGen - Similar to EnvGen.
 // • DetectSilence - doneAction when the UGen detects silence below a threshold.
 // • Duty and TDuty - doneAction evaluated when a duty stream ends.
+
+(
+  SynthDef(\sine, {arg freq=440, amp=0.1, gate=1, dA = 2;
+    var signal, env;
+    signal = SinOsc.ar(freq, 0, amp);
+    env = EnvGen.ar(Env.adsr(0.2, 0.2, 0.5, 0.3, 1, 1), gate, doneAction: dA);
+    Out.ar(0, Pan2.ar(signal * env, 0));
+  }).add
+)
+s.plotTree; // watch the nodes appearing on the server tree
+s.freeAll;
+
+// In the examples below, when you add a node, it is always added at the top of the node tree. This is how
+// SC server does it by default. Synths can be added anywhere in the three though, but that will be discussed
+// later in the chapter on busses, nodes and groups. [xxx, 15. ]
+
+// doneAction = 0
+a = Synth(\sine, [\dA, 0]);
+a.release;
+a.set(\gate, 1)
+a.free;
+
+// doneAction = 1
+a = Synth(\sine, [\dA, 1]);
+a.release;
+a.set(\gate, 1);
+a.run(true);
+a.free;
+
+// doneAction = 2
+a = Synth(\sine, [\dA, 2]);
+a.release;
+a.set(\gate, 1); // it's gone! (see server synth count)
+
+// doneAction = 3
+a = Synth(\sine, [\dA, 3]);
+b = Synth(\sine, [\freq, 660, \dA, 3]);
+a.release;
+
+// doneAction = 3
+a = Synth(\sine, [\dA, 3]);
+b = Synth(\sine, [\freq, 660, \dA, 3], addAction:\addToTail);
+b.release;
+
+// doneAction = 3
+a = Synth(\sine, [\freq, 440, \dA, 3])
+b = Synth(\sine, [\freq, 660, \dA, 3])
+c = Synth(\sine, [\freq, 880, \dA, 3])
+b.release // will release b and c
+a.free
+
+// doneAction = 4
+a = Synth(\sine, [\freq, 440, \dA, 4])
+b = Synth(\sine, [\freq, 660, \dA, 4])
+c = Synth(\sine, [\freq, 880, \dA, 4])
+b.release // will release a and b
+c.free
+
+// doneAction = 5
+g = Group.new;
+a = Synth(\sine, [\freq, 440, \dA, 0], target:g)
+b = Synth(\sine, [\freq, 660, \dA, 0], target:g)
+c = Synth(\sine, [\freq, 880, \dA, 5])
+c.release // will only free c (itself)
+g.free
+
+// doneAction = 5
+g = Group.new;
+a = Synth(\sine, [\freq, 440, \dA, 0], target:g)
+b = Synth(\sine, [\freq, 660, \dA, 0], target:g)
+c = Synth(\sine, [\freq, 880, \dA, 5], addAction:\addToTail)
+c.release // will free itself and the preceding group
+g.free
+
+// doneAction = 6
+g = Group.new;
+a = Synth(\sine, [\freq, 440, \dA, 0], target:g)
+b = Synth(\sine, [\freq, 660, \dA, 0], target:g)
+c = Synth(\sine, [\freq, 880, \dA, 6])
+c.release // will free itself and the following group
+g.free
+
+// doneAction = 7
+g = Group.new;
+a = Synth(\sine, [\freq, 440, \dA, 0], target:g )
+b = Synth(\sine, [\freq, 660, \dA, 0], target:g)
+c = Synth(\sine, [\freq, 880, \dA, 7], target:g)
+d = Synth(\sine, [\freq, 1100, \dA, 0], target:g)
+e = Synth(\sine, [\freq, 1300, \dA, 0], target:g)
+c.release // will free itself and preceding nodes in a group
+g.free
+
+// doneAction = 8
+g = Group.new;
+a = Synth(\sine, [\freq, 440, \dA, 0], target:g)
+b = Synth(\sine, [\freq, 660, \dA, 0], target:g)
+c = Synth(\sine, [\freq, 880, \dA, 8], target:g)
+d = Synth(\sine, [\freq, 1100, \dA, 0], target:g)
+e = Synth(\sine, [\freq, 1300, \dA, 0], target:g)
+c.release // will free itself and preceding nodes in a group
+g.free
+
+// doneAction = 9
+a = Synth(\sine, [\freq, 440, \dA, 9])
+b = Synth(\sine, [\freq, 660, \dA, 0])
+a.release // will free itself and pause the preceding node
+b.run(true) // it was only paused
+b.free
+
+// doneAction = 10
+g = Group.new;
+a = Synth(\sine, [\freq, 440, \dA, 0], target:g)
+b = Synth(\sine, [\freq, 660, \dA, 0], target:g)
+c = Synth(\sine, [\freq, 880, \dA, 10])
+d = Synth(\sine, [\freq, 1100, \dA, 0])
+c.release // will free itself and pause following nodes in a group
+g.run(true) // it was only paused
+s.freeAll
+
+// doneAction = 11
+a = Synth(\sine, [\freq, 440, \dA, 11])
+b = Synth(\sine, [\freq, 660, \dA, 0])
+a.release // will free itself and the preceding node
+
+// doneAction = 12
+g = Group.new;
+a = Synth(\sine, [\freq, 440, \dA, 0], target:g)
+b = Synth(\sine, [\freq, 660, \dA, 0], target:g)
+c = Synth(\sine, [\freq, 880, \dA, 12])
+d = Synth(\sine, [\freq, 1100, \dA, 0])
+c.release // will free itself and the following node
+d.free
+
+// doneAction = 13
+g = Group.new;
+a = Synth(\sine, [\freq, 440, \dA, 0], target:g)
+b = Synth(\sine, [\freq, 660, \dA, 0], target:g)
+c = Synth(\sine, [\freq, 880, \dA, 13])
+d = Synth(\sine, [\freq, 1100, \dA, 0])
+x = Synth(\sine, [\freq, 2100, \dA, 0])
+e = Synth(\sine, [\freq, 1300, \dA, 0])
+c.release // will free itself and the following node
+
+
+// Triggers and Gates
+// The difference between a gated and timed envelope has become clear in the above examples, but to put
+// it in very simple terms, think of the piano as having a timed envelope (as the note dies after a while), but
+// the organ as having a gated envelope (as the note only stops when the key is released). For user input it
+// is good to be able to keep the envelope open as long as the user wants and free it at some event, such as
+// releasing a key (or a person exiting a room in a sound installation).
+
+// Gates
+// Gates are typically used to start a sound that contains an envelope of some sort. They ‘open up’ for a flow
+// values to pass through for a period of time (timed or untimed). When a gate closes, it typically runs the
+// release part of the envelope used.
+d = Synth(\sine, [\freq, 1100]) // key down
+d.release // key up
+// compare with
+d = Synth(\sine, [\freq, 840]) // key down
+d.free // kill immediately
+// gate holds the EnvGen open. Here using Dust (random impulses) to trigger a new envelope
+{EnvGen.ar(Env.adsr(0.001, 0.8, 1, 1), Dust.ar(1)) * Saw.ar(55)!2}.play
+s.freeAll
+// Here using Impulse (periodic impulses)
+{EnvGen.ar(Env.adsr(0.001, 0.8, 1, 1), Impulse.ar(2)) * SinOsc.ar(LFNoise0.ar(2).range(200, 1000))!2}.play
+// With a doneAction: 2 we kill the synth after the first envelope
+{EnvGen.ar(Env.adsr(0.001, 0.8, 0.1, 0.1), Impulse.ar(2), doneAction:2) * SinOsc.ar(2222)!2}.play
+// but if we increase the release time of the envelope, it will be retriggered before the doneAction can kill it
+{EnvGen.ar(Env.adsr(0.001, 0.8, 0.1, 1), Impulse.ar(2), doneAction:2) * SinOsc.ar(1444)!2}.play
+
+
+// Triggers
+// Triggers are similar to gates, they start a process, but they do not have the release function Gates have.
+// So they are used to trigger envelopes.
+// trigger rate - Arguments that begin with “t_” (e.g. t_trig), or that are specified as \tr in the def’s rates
+// argument (see below), will be made as a TrigControl. Setting the argument will create a control-rate
+// impulse at the set value. This is useful for triggers
+(
+  a = { arg t_gate = 1;
+    var freq;
+    freq = EnvGen.kr(Env.new([200, 200, 800], [0, 1.6]), t_gate);
+    SinOsc.ar(freq, 0, 0.2) ! 2
+  }.play;
+)
+a.set(\t_gate, 1) // try to evaluate this line repeatedly
+a.free // if you observe the server window you see this synth disappearing
+
+(
+  a = { arg t_gate = 1;
+    var env;
+    env = EnvGen.kr(Env.adsr, t_gate);
+    SinOsc.ar(888, 0, 1 * env) ! 2
+  }.play;
+)
+a.set(\t_gate, 1) // repeat this
+a.free // free the synth (since it didn't have a doneAction:2)
+// If you are curious about what doneAction:2 would have done, try this:
+(
+  a = { arg t_gate = 1;
+    var env;
+    env = EnvGen.kr(Env.adsr, t_gate, doneAction:2);
+    SinOsc.ar(888, 0, 1 * env) ! 2
+  }.play;
+)
+a.set(\t_gate, 1) // why does this line not retrigger the synth?
+// Now try the same with doneAction:0
+
+// If you want to keep the same synth on the server and trigger it from another process than the synthesis
+// control parameter process you can use gates and triggers for the envelope. Use doneAction:0 to keep the
+// synth on the server before or after the envelope is triggered.
+// Let’s turn the examples above into SynthDefs and explore the concept of gates:
+(
+  SynthDef(\trigtest, {arg freq, amp, dur=1, gate;
+    var signal, env;
+    env = EnvGen.ar(Env.adsr(0.01, dur, amp, 0.7), gate, doneAction:0);
+    signal = SinOsc.ar(freq) * env;
+    Out.ar(0, signal);
+  }).add
+)
+a = Synth(\trigtest, [\freq, 333, \amp, 1, \gate, 0]) // gate is 0, no sound
+a.set(\gate, 1)
+a.set(\gate, 0)
+// the synth is still running, even if it is silent
+a.set(\freq, 788) // change the frequency
+a.set(\gate, 1)
+a.set(\gate, 0)
+a.free
+
+// The example below does the same, but here with a fixed time envelope. Since that envelope finishes when
+// it is done, it does not work with gates. We need a trigger to trigger it back to life.
+// here we use a t_trig to retrigger the synth
+(
+  SynthDef(\trigtest2, {arg freq, amp, dur=1, t_trig;
+    var signal, env;
+    env = EnvGen.ar(Env.perc(0.01, dur, amp), t_trig, doneAction:0);
+    signal = SinOsc.ar(freq) * env;
+    Out.ar(0, signal);
+  }).add
+)
+a = Synth(\trigtest2, [\freq, 333, \amp, 1, \t_trig, 1])
+a.set(\freq, 788)
+a.set(\t_trig, 1);
+a.set(\amp, 0.28)
+a.set(\t_trig, 1);
+a.set(\freq, 588)
+a.set(\t_trig, 1);
+a.set(\amp, 0.8)
+a.set(\t_trig, 1);
+
+
+// MIDI Keyboard Example
+// The techniques we’ve been exploring above are useful when creating user interfaces for your synth. As
+// an example we could create a synth definition to be controlled by a MIDI controller. Other usage could be
+// networked communication, input from other software, or running musical patterns within SuperCollider
+// itself. In the example below we build upon the example we did in chapter 4, but here we add pitch bend
+// and vibrato
+
+(
+  MIDIIn.connectAll; // we connect all the incoming devices
+  MIDIFunc.noteOn({arg ...x; x.postln; }); // we post all the args
+  //First we create a synth definition for this example:
+  SynthDef(\moog, {arg freq=440, amp=1, gate=1, pitchBend=0, cutoff=20, vibrato=0;
+    var signal, env;
+    signal = LPF.ar(VarSaw.ar([freq, freq+2]+pitchBend+SinOsc.ar(vibrato, 0, 1, 1), 0, XLine.ar(0.7, 0.9, 0.13)), (cutoff * freq).min(16000));
+    env = EnvGen.ar(Env.adsr(0), gate, levelScale: amp, doneAction:2);
+    Out.ar(0, signal*env);
+  }).add;
+  a = Array.fill(127, { nil }); // create an array of nils, where the Synths will live
+  g = Group.new; // we create a Group to be able to set cutoff of all active notes
+  c = 6;
+  MIDIdef.noteOn(\myOndef, {arg vel, key, channel, device;
+    // we use the key as index into the array as well
+    a[key] = Synth(\moog, [\freq, key.midicps, \amp, vel/127, \cutoff, 10], target: g);
+  });
+  MIDIdef.noteOff(\myOffdef, {arg vel, key, channel, device;
+    a[key].release;
+    a[key] = nil; // we put nil back in the array as we use it in the if-statements below
+  });
+  MIDIdef.cc(\vibrato, { arg val;
+    c = val.linlin(0, 127, 0, 100).max(1);
+    "Vibrato : ".post; val.post; " __ ".post; c.postln;
+    a.do({arg synth;
+      if( synth != nil , { synth.set(\cutoff, c ) });
+    });
+  });
+  MIDIdef.bend(\bend, { arg val;
+    c = val.linlin(0, 16384, (-127 / 2), 127 / 2);
+    "Pitch bend : ".post; val.postln; c.postln;
+    a.do({arg synth;
+      if( synth != nil , { synth.set(\pitchBend, c ) });
+    });
+  });
+)
+s.freeAll
+MIDIdef.freeAll
