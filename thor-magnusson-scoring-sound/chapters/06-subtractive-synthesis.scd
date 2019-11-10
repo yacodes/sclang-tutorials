@@ -318,6 +318,37 @@ a.set(\gate, 0); // kill the synth
 a.free;
 
 
-// @TODO
 // We can now hook up a keyboard and play the \moog synth that we’ve designed.
 // The MiniMoog is monophonic (only one note at a time), and it could be written like this:
+MIDIClient.init;
+MIDIIn.connectAll;
+
+// Monophonic
+(
+  c = 4;
+  MIDIdef.noteOn(\myOndef, {arg vel, key, channel, device;
+    a.release;
+    a = Synth(\moog, [\freq, key.midicps, \amp, vel/127, \cutoff, c]);
+    [key, vel].postln;
+  });
+  MIDIdef.noteOff(\myOffdef, {arg vel, key, channel, device;
+    a.release;
+    //a = nil;
+    [key, vel].postln;
+  });
+)
+c = 10; // change the cutoff frequency at a later point
+// the 'c' variable could be set from a GUI or a MIDI controller
+
+// Polyphonic
+(
+  a = Array.fill(127, { nil });
+  MIDIIn.connectAll;
+  MIDIdef.noteOn(\myOndef, {arg vel, key, channel, device;
+    // we use the key as index into the array as well
+    a[key] = Synth(\moog, [\freq, key.midicps, \amp, vel/127, \cutoff, 4]);
+  });
+  MIDIdef.noteOff(\myOffdef, {arg vel, key, channel, device;
+    a[key].release;
+  });
+)
