@@ -265,3 +265,4 @@ b = Buffer.read(s,Platform.resourceDir+/+"sounds/a11wlk01.wav");
 {Concat2.ar(SoundIn.ar(0),PlayBuf.ar(1, b, 1, loop:1),1.0,1.0,1.0,0.1,0,0.0,1.0,0.0,0.0)}.play
 // mouse X used control the match length
 {Concat2.ar(SoundIn.ar(0),PlayBuf.ar(1, b, 1, loop:1),1.0,1.0,1.0,MouseX.kr(0.0,0.1),0,1.0,0.0,1.0,1.0)}.play
+s.freeAll
