@@ -22,7 +22,7 @@ s.freeAll
 { RLPF.ar(CombL.ar(Decay.ar(Impulse.ar(2), 0.1, BrownNoise.ar), 0.02, 100.reciprocal, 3), 400, 1)!2 }.play
 s.freeAll
 
-play{a=Dust.ar(3);FreeVerb.ar(BPF.ar(Decay.ar(a,TRand.ar(0.1,0.7,a),BrownNoise.ar),2**LFNoise0.kr(4/3,3)*1024)).distort!2}
+play{a=Dust.ar(3);GVerb.ar(BPF.ar(Decay.ar(a,TRand.ar(0.1,0.7,a),BrownNoise.ar),2**LFNoise0.kr(4/3,3)*1024)).distort!2}
 s.freeAll
 
 
