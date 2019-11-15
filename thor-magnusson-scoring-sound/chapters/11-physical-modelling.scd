@@ -22,7 +22,7 @@ s.freeAll;
 // we generate a short burst (the excitation)
 { Decay.ar(Impulse.ar(1), 0.1, WhiteNoise.ar) }.play
 // we then wrap that noise in a fast repeating delay
-{ CombL.ar(Decay.ar(Impulse.ar(1), 0.1, WhiteNoise.ar), 0.02, 0.005, 3) }.play
+{ CombL.ar(Decay.ar(Impulse.ar(1), 0.1, WhiteNoise.ar), 0.02, 40.reciprocal, 3) }.play
 s.freeAll
 
 // The repeat rate of the delay becomes the pitch of the string, so 0.001 is 1000 Hz, or in a reciprocal
