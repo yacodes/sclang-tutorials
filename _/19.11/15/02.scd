@@ -1,3 +1,5 @@
+s.boot
+
 
 {RLPFD.ar(Pulse.ar([40, 42]), LFNoise0.kr(4/3).range(18.75, 4800).poll(4/3, label: "bpf-freq"), 1, 0.5)}.play
 
