@@ -11,3 +11,9 @@
 )
 
 s.freeAll
+
+s.boot
+
+s.boot
+
+Platform.userExtensionDir

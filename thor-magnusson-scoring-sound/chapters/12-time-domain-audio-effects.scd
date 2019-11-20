@@ -4,8 +4,8 @@ s.freeAll;
 (
   s.boot;
   s.meter;
-  // FreqScope.new(512, 512);
-  FreqScope.new(368, 256);
+  FreqScope.new(512, 512);
+  // FreqScope.new(368, 256);
   s.scope;
 )
 
@@ -512,4 +512,513 @@ b = Buffer.read(s, Platform.resourceDir +/+ "sounds/drums.wav"); // replace this
 a = Synth(\tremolo, [\inbus, 10], addAction:\addToTail)
 a.set(\freq, 4.8)
 a.set(\strength, 0.8)
+s.freeAll
+
+
+// Distortion
+// Distortion can be achieved through diverse algorithms, but the most basic one could be to raise the
+// amplitude of the signal so much that it starts to clip (below -1 and above 1), thus turning a sine wave into
+// a square wave, adding harmonics.
+(
+  {
+    var in, gain;
+    in = AudioIn.ar(1);
+    gain = MouseX.kr(1,100);
+    in=in.abs;
+    ((in.squared + (gain*in))/(in.squared + ((gain-1)*in) + 1))
+    !2
+  }.play
+)
+s.freeAll
+// SuperCollider has a .distort method.
+(
+  { // mouseX is pregain, mouseY is postgain
+    var in, distortion, fx, y, z;
+    in = AudioIn.ar(1);
+    distortion = ((in * MouseX.kr(1,10)).distort * MouseY.kr(1,10)).distort;
+    fx = Compander.ar(distortion, distortion, 1, 0, 1 ); // sustain
+    Out.ar(0, LeakDC.ar(fx + in ) !2 );
+  }.play
+)
+
+// Here not using AudioIN:
+b = Buffer.read(s, Platform.resourceDir +/+ "sounds/drums.wav"); // replace this sound with a nice sounding one !!!
+{Out.ar(10, PlayBuf.ar(1, b.bufnum, BufRateScale.kr(b.bufnum), loop:1))}.play(addAction:\addToHead)
+(
+  { // mouseX is pregain, mouseY is postgain
+    var in, distortion, fx, y, z;
+    in = In.ar(10);
+    distortion = ((in * MouseX.kr(1,10)).distort * MouseY.kr(1,10)).distort;
+    fx = Compander.ar(distortion, distortion, 1, 0, 1 ); // sustain
+    Out.ar(0, LeakDC.ar(fx + in ) !2 );
+  }.play(addAction:\addToTail) // for addAction, see Synth helpfile or tutorial 13
+)
+s.freeAll
+
+
+// Compressor
+// The compressor reduces the dynamic range of a signal if it exceeds certain threshold. The compression
+// ratio determines how much the signal exceeding the threshold is lowered. 4:1 compression ratio means
+// that for every 4 dB of signal that goes into the unit, it lowers the signal such that only 1 dB is outputted
+(
+  {
+    var in, compander;
+    in = AudioIn.ar(1);
+    compander = Compander.ar(in, in, MouseX.kr(0.001, 1, 1), 1, 0.5, 0.01, 0.01);
+    compander ! 2 // stereo
+  }.play
+)
+e = Buffer.read(s, Platform.resourceDir +/+ "sounds/drums.wav");
+(
+  {
+    var in, compander;
+    in = PlayBuf.ar(1, e.bufnum, BufRateScale.kr(e.bufnum), loop:1);
+    compander = Compander.ar(in, in, MouseX.kr(0.0001, 1, 1), 1, 0.5, 0.01, 0.01);
+    compander ! 2 // stereo
+  }.play
+)
+s.freeAll
+
+
+// Limiter
+// The limiter does essentially the same as the compressor, but it looks at the signal’s peaks whereas the
+// compressor looks at the average energy level. A limiter will not let the signal past the threshold, while
+// the compressor does, according to the ratio settings.
+// The difference is in the slopeAbove argument of the Compander (0.5 in the compressor, but 0.1 in the
+// limiter
+(
+  // limiter - Audio In
+  {
+    var in, compander;
+    in = AudioIn.ar(1);
+    compander = Compander.ar(in, in, MouseX.kr(0.001, 1, 1), 1, 0.1, 0.01, 0.01);
+    compander ! 2 // stereo
+  }.play
+)
+
+(
+  // limiter - Soundfile
+  {
+    var in, compander;
+    in = PlayBuf.ar(1, e.bufnum, BufRateScale.kr(e.bufnum), loop:1);
+    compander = Compander.ar(in, in, MouseX.kr(0.0001, 1, 1), 1, 0.1, 0.01, 0.01);
+    compander ! 2 // stereo
+  }.play
+)
+s.freeAll
+
+
+// Sustainer
+// The sustainer works like an inverted compressor, it exaggerates the low amplitudes and tries to raise them
+// up to the threshold defined.
+(
+  // sustainer - Audio In
+  {
+    var in, compander;
+    in = AudioIn.ar(1);
+    compander = Compander.ar(in, in, MouseX.kr(0.001, 1, 1), 0.1, 1, 0.01, 0.01);
+    compander ! 2 // stereo
+  }.play
+)
+(
+  // sustainer - Soundfile
+  {
+    var in, compander;
+    in = PlayBuf.ar(1, e.bufnum, BufRateScale.kr(e.bufnum), loop:1);
+    compander = Compander.ar(in, in, MouseX.kr(0.0001, 1, 1), 0.1, 1, 0.01, 0.01);
+    compander ! 2 // stereo
+  }.play
+)
+// for comparison, here is the file without sustain:
+{PlayBuf.ar(1, e.bufnum, BufRateScale.kr(e.bufnum), loop:1)!2}.play
+s.freeAll
+
+
+// Noise gate
+// The noise gate allows a signal to pass through the filter only when it is above a certain threshold. If the
+// energy of the signal is below the threshold, no sound is allowed to pass. It is often used in settings where
+// there is background noise and one only wants to record the signal and not the (in this case) uninteresting
+// noise.
+(
+  // noisegate - Audio In
+  {
+    var in, compander;
+    in = AudioIn.ar(1);
+    compander = Compander.ar(in, in, MouseX.kr(0.005, 1, 1), 10, 1, 0.01, 0.01);
+    compander ! 2 // stereo
+  }.play
+)
+(
+  // noisegate - sound file
+  {
+    var in, compander;
+    in = PlayBuf.ar(1, e.bufnum, BufRateScale.kr(e.bufnum), loop:1);
+    compander = Compander.ar(in, in, MouseX.kr(0.001, 1), 10, 1, 0.01, 0.01);
+    compander ! 2 // stereo
+  }.play
+)
+s.freeAll
+
+// The noise gate needs a bit of parameter tweaking to get what you want, so here is the same version as
+// above, just with a MouseY controlling the slopeAbove parameter.
+(
+  // noisegate - Audio In
+  {
+    var in, compander;
+    in = AudioIn.ar(1);
+    compander = Compander.ar(in, in, MouseX.kr(0.005, 1, 1), MouseY.kr(1,20), 1, 0.01, 0.01);
+    compander ! 2 // stereo
+  }.play
+)
+(
+  // noisegate - soundfile
+  {
+    var in, compander;
+    in = PlayBuf.ar(1, e.bufnum, BufRateScale.kr(e.bufnum), loop:1);
+    compander = Compander.ar(in, in, MouseX.kr(0.001, 1), MouseY.kr(1,20), 1, 0.01, 0.01);
+    compander ! 2 // stereo
+  }.play
+)
+(
+  // for fun: a noisegater with a bit of reverb (controlled by mouseY)
+  // better use headphones - danger of feedback!
+  {
+    var in, compander;
+    var predelay=0.048, combdecay=3.7, allpassdecay=0.21, revVol=0.21;
+    in = AudioIn.ar(1);
+    compander = Compander.ar(in, in, MouseX.kr(0.005, 1, 1), 10, 1, 0.01, 0.01);
+    z = DelayN.ar(compander, 0.1, predelay);
+    y = Mix.ar(Array.fill(7,{ CombL.ar(z, 0.05, rrand(0.03, 0.05), MouseY.kr(1,20, 1)) }));
+    6.do({ y = AllpassN.ar(y, 0.050, rrand(0.03, 0.05), allpassdecay) });
+    y!2
+  }.play
+)
+s.freeAll
+
+
+// Normalizer
+// Normalizer uses a buffer to store the sound in a small delay and look ahead in the audio. It will not
+// overshoot like a Compander, but the downside is the delay. The normalizer normalizes the input amplitide
+// to a given level.
+(
+  // normalizer - Audio In
+  {
+    var in, normalizer;
+    in = AudioIn.ar(1);
+    normalizer = Normalizer.ar(in, MouseX.kr(0.1, 0.9), 0.01);
+    normalizer ! 2 // stereo
+  }.play
+)
+(
+  // normalizer - sound file
+  {
+    var in, normalizer;
+    in = PlayBuf.ar(1, e.bufnum, BufRateScale.kr(e.bufnum), loop:1);
+    normalizer = Normalizer.ar(in, MouseX.kr(0.1, 0.9), 0.01);
+    normalizer ! 2 // stereo
+  }.play
+)
+s.freeAll
+
+
+// Limiter (Ugen)
+// Like the Normalizer, the Limiter uses a buffer to store the sound in a small delay buffer to look ahead in
+// the audio. It will not overshoot like the Compander, but you have to put up with a slight the delay. The
+// limiter limits the input amplitude to a given level.
+(
+  // limiter - Audio In
+  {
+    var in, normalizer;
+    in = AudioIn.ar(1);
+    normalizer = Limiter.ar(in, MouseX.kr(0.1, 0.9), 0.01);
+    normalizer ! 2 // stereo
+  }.play
+)
+(
+  // limiter - sound file
+  {
+    var in, normalizer;
+    in = PlayBuf.ar(1, e.bufnum, BufRateScale.kr(e.bufnum), loop:1);
+    normalizer = Limiter.ar(in, MouseX.kr(0.1, 0.9), 0.01);
+    normalizer ! 2 // stereo
+  }.play
+)
+s.freeAll
+
+
+// Amplitude
+// Amplitude tracks the peak amplitude of a signal. It is not really an audio effect, but it can be a key element
+// in the design of effects, (for example adaptive audio effects) and is therefore included here in this section.
+// In the example below, we map the input amplitude to frequency of a sine:
+{SinOsc.ar(Amplitude.kr(AudioIn.ar(1), 0.1, 0.1, 12000, 0), 0, 0.3)}.play;
+s.freeAll
+
+// with a noise gater as explained above
+(
+  {
+    var noisegate, in;
+    in = AudioIn.ar(1);
+    noisegate = Compander.ar(in, in, MouseX.kr(0.005, 1, 1), MouseY.kr(1,20), 1, 0.01, 0.01);
+    SinOsc.ar(Amplitude.kr(noisegate, 0.1, 0.1, 12000, 0), 0, 0.3) ! 2
+  }.play;
+)
+s.freeAll
+
+(
+  // Compare the two following examples
+  {SinOsc.ar(
+    MouseX.kr(100, 6000, 1),
+    0,
+    Amplitude.kr(AudioIn.ar(1), 0.1, 0.1, 1, 0)
+  )!2}.play
+)
+// -- huh? --
+(
+  {SinOsc.ar(
+    MouseX.kr(100, 6000, 1),
+    0,
+    AudioIn.ar(1)
+  )!2}.play
+)
+s.freeAll
+
+
+// Pitch
+// Pitch tracks the pitch of a signal. If the pitch tracker has found the pitch, the hasFreq variable will be 1
+// (true), if it doesn’t hold a pitch then it is 0 (false). (Read the helpfile about how it works)
+// NOTE: it can be useful to pass the input signal through a Low Pass Filter as it is easier to detect the pitch
+// of a signal with less harmonics.
+// Tip: People often ask about the hashtag in front of the pitch and hasPitch variables. This is a way to assign
+// two variables with valued from an array.
+# a, b = [444, 555];
+a
+b
+
+// The simplest of patches - mapping pitch to the frequency of the sine
+(
+  {
+    var env, in, freq, hasFreq;
+    // the audio input
+    in = AudioIn.ar(1);
+    // the pitch variable and the hasFreq (Pitch.kr returns a list like this [freq, hasFreq])
+    # freq, hasFreq = Pitch.kr(in, ampThreshold: 0.2, median: 7);
+    // when the hasFreq is true (pitch is found) we generate a ADSR envelope that is open until
+    // the hasFreq is false again or the amplitude is below the ampThreshold of the Pitch.
+    env = EnvGen.ar(Env.adsr(0.51, 0.52, 1, 0.51, 1, -4), gate: hasFreq);
+    // we plug the envolope to the volume argument of the Sine
+    SinOsc.ar(freq, 0, env * 0.5) ! 2
+  }.play;
+)
+s.freeAll
+
+// a bit more complex patch where we use Amplitude to control volume:
+(
+  {
+    var env, in, freq, hasFreq, amp;
+    // the audio input
+    in = AudioIn.ar(1);
+    amp = Amplitude.kr(in, 0.25, 0.25);
+    // the pitch variable and the hasFreq (Pitch.kr returns a list like this [freq, hasFreq])
+    # freq, hasFreq = Pitch.kr(in, ampThreshold: 0.2, median: 7);
+    // when the hasFreq is true (pitch is found) we generate a ADSR envelope that is open until
+    // the hasFreq is false again or the amplitude is below the ampThreshold of the Pitch.
+    env = EnvGen.ar(Env.adsr(0.51, 0.52, 1, 0.51, 1, -4), gate: hasFreq);
+    // we plug the envolope to the volume argument of the Sine
+    SinOsc.ar(freq, 0, env * amp) ! 2
+  }.play;
+)
+
+(
+  SynthDef(\pitcher,{
+    var in, amp, freq, hasFreq, out, gate, threshold;
+    threshold = 0.05; // change
+    // using a LowPassFilter to remove high harmonics
+    in = LPF.ar(Mix.new(AudioIn.ar([1,2])), 2000);
+    amp = Amplitude.kr(in, 0.25, 0.25);
+    # freq, hasFreq = Pitch.kr(in, ampThreshold: 0.1, median: 7);
+    gate = Lag.kr(amp > threshold, 0.01);
+    // -- to look at the values, uncomment the following lines
+    // -- (you need a recent build with the Poll class)
+    //Poll.kr(Impulse.kr(10), freq, "frequency:");
+    //Poll.kr(Impulse.kr(10), amp, "amplitude:");
+    //Poll.kr(Impulse.kr(10), hasFreq, "hasFreq:");
+    out = VarSaw.ar(freq, 0, 0.2, amp*hasFreq*gate);
+    // uncomment (3 sines (octave lower, pitch and octave higher mixed into one signal (out)))
+    //out = Mix.new(SinOsc.ar(freq * [0.5,1,2], 0, 0.2 * amp*hasFreq*gate));
+    6.do({
+      out = AllpassN.ar(out, 0.040, [0.040.rand,0.040.rand], 2)
+    });
+    Out.ar(0,out)
+  }).play(s);
+)
+s.freeAll
+
+
+// In the example below we use the Tartini UGen by Nick Collins. In my experience it performs better than
+// Pitch and is part of the SC3-plugins external plugins.
+(
+  SynthDef(\pitcher,{
+    var in, amp, freq, hasFreq, out, threshold, gate;
+    threshold = 0.05; // change
+    in = LPF.ar(Mix.new(AudioIn.ar([1,2])), 2000);
+    amp = Amplitude.kr(in, 0.25, 0.25);
+    # freq, hasFreq = Tartini.kr(in);
+    gate = Lag.kr(amp > threshold, 0.01);
+    // -- to look at the values, uncomment the following lines
+    // -- (you need a recent build with the Poll class)
+    //Poll.kr(Impulse.kr(10), freq, "frequency:");
+    //Poll.kr(Impulse.kr(10), amp, "amplitude:");
+    //Poll.kr(Impulse.kr(10), hasFreq, "hasFreq:");
+    out = Mix.new(VarSaw.ar(freq * [0.5,1,2], 0, 0.2, gate* hasFreq *amp ));
+    //out = Mix.new(SinOsc.ar(freq * [0.5,1,2], 0, 0.2 * amp*hasFreq*gate));
+    6.do({
+      out = AllpassN.ar(out, 0.040, [0.040.rand,0.040.rand], 2)
+    });
+    Out.ar(0,out)
+  }).play(s);
+)
+s.freeAll
+
+
+// ——————————————————————————————————————————————————————
+// Filters
+// The filter Ugens in SuperCollider use complex time-domain algorithms to achieve the desired effect.
+
+// Low Pass Filter
+(
+  {
+    var in;
+    in = AudioIn.ar(1);
+    LPF.ar(in, MouseX.kr(80, 4000));
+  }.play
+)
+
+(
+  {
+    var in;
+    in = Blip.ar(440);
+    LPF.ar(in, MouseX.kr(80, 24000));
+  }.play
+)
+s.freeAll
+
+
+// Resonant Low Pass Filter
+(
+  {
+    var in;
+    in = Blip.ar(440);
+    RLPF.ar(in, MouseX.kr(80, 22000), MouseY.kr(0.0001, 1));
+  }.play
+)
+(
+  {
+    var in;
+    in = WhiteNoise.ar(1);
+    RLPF.ar(in, MouseX.kr(80, 22000), MouseY.kr(0.0001, 1));
+  }.play
+)
+s.freeAll
+
+
+// High Pass Filter
+(
+  {
+    var in;
+    in = Blip.ar(440);
+    HPF.ar(in, MouseX.kr(80, 22000));
+  }.play
+)
+(
+  {
+    var in;
+    in = WhiteNoise.ar(1);
+    HPF.ar(in, MouseX.kr(80, 22000));
+  }.play
+)
+s.freeAll
+
+
+// Resonant High Pass Filter
+(
+  {
+    var in;
+    in = Blip.ar(440);
+    RHPF.ar(in, MouseX.kr(80, 22000), MouseY.kr(0.0001, 1));
+  }.play
+)
+(
+  {
+    var in;
+    in = WhiteNoise.ar(1);
+    RHPF.ar(in, MouseX.kr(80, 22000), MouseY.kr(0.0001, 1));
+  }.play
+)
+s.freeAll
+
+// Band Pass Filter
+(
+  {
+    var in;
+    in = Blip.ar(440);
+    BPF.ar(in, MouseX.kr(80, 22000), MouseY.kr(0.0001, 1));
+  }.play
+)
+(
+  {
+    var in;
+    in = WhiteNoise.ar(1);
+    BPF.ar(in, MouseX.kr(80, 22000), MouseY.kr(0.0001, 1));
+  }.play
+)
+s.freeAll
+
+
+// Band Reject Filter
+{ BRF.ar(Saw.ar(200,0.1), FSinOsc.kr(XLine.kr(0.7,300,20),0,3800,4000), 0.3) }.play;
+{ BRF.ar(Saw.ar(200,0.5), MouseX.kr(100, 10000, 1), 0.3) }.play;
+s.freeAll
+
+// SOS - A biquad filter
+// A second order filter, also known as biquad filter. The helpfile shows the algorithm itself:
+out(i) = (a0 * in(i)) + (a1 * in(i-1)) + (a2 * in(i-2)) + (b1 * out(i-1)) + (b2 * out(i-2))
+// Where you can see that the filter reaches back to the second sample after the current one, and uses
+// parameters (a0, a1, b1 and b2) to affect the function of the filter.
+(
+  {
+    var rho, theta, b1, b2;
+    theta = MouseX.kr(0.2pi, pi);
+    rho = MouseY.kr(0.6, 0.99);
+    b1 = 2.0 * rho * cos(theta);
+    b2 = rho.squared.neg;
+    SOS.ar(WhiteNoise.ar(0.1 ! 2), 1.0, 0.0, 0.0, b1, b2)
+  }.play
+)
+s.freeAll
+
+
+// Resonant filter
+// This filter will resonate frequencies at the set frequency. The bwr parameter is the bandwidth ratio, that
+// is, how much energy is passed on each side of the centre frequency.
+{ Resonz.ar(WhiteNoise.ar(0.5), 2000, XLine.kr(1, 0.001, 8)) }.play
+// high amp input (from Impulse) and low RQ makes a note
+{Resonz.ar(Impulse.ar(1.5, 0, 50), Rand(200,2000), 0.03) }.play
+// try putting 500 in amp and 0.003 in RQ
+{Resonz.ar(Impulse.ar(1.5, 0, 500), Rand(200,2000), 0.003) }.play
+s.freeAll
+
+// for fun ( if you don't like the polyrhythm, put 1 instead of trig)
+// or if you like it, then put some more tempi in there and appropriate weights
+(
+  var trig;
+  var wait = 4;
+  Task({
+    20.do({
+      trig = [1, 1.5].wchoose([0.7, 0.3]);
+      {Resonz.ar(Impulse.ar(trig, 0, 50*rrand(5,10)), Rand(200,2000), 0.003) ! 2}.play;
+      (wait + rrand(0.1,1)).wait;
+      wait = wait - rrand(0.01, 0.2);
+    })
+  }).play
+)
 s.freeAll
