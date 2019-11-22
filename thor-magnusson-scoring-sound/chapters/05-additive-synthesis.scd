@@ -1,5 +1,4 @@
 // Chapter 5 - Additive Synthesis
-// we add 500 oscillators together and the CPU is less than 20%
 s.boot;
 FreqScope.new;
 s.meter;
