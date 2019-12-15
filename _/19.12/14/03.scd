@@ -225,3 +225,154 @@ SynthDef.new("bd", {
 
 Synth(\perc, [\freq, 40]);
 Synth(\bd);
+
+
+(
+	// cello like sound
+	SynthDef(\cello, {
+		|
+		freq=440, amp=1.0, out=0, pan=0.0, rq=0.1,
+		atk=0.01, dcy=0.1, sus=0.5, rls=0.4,
+		gate=1, dur=2,
+		aux=0, auxsend=0.1
+		|
+		var sig, env,width;
+		env = EnvGen.ar(Env.adsr(atk, dcy, sus, rls), gate, doneAction:2);
+		width = LFNoise2.kr(1).range(0.001, 0.01);
+		sig = VarSaw.ar(freq+ SinOsc.ar(6,mul:Line.kr(0.0, 1, dur,doneAction:2)), width:width);
+		sig = RLPF.ar(sig, freq*1, rq);
+		sig = Decimator.ar(sig, 22050,2);
+		sig = sig *env* amp;
+		Out.ar(out, Pan2.ar(sig, pan));
+		Out.ar(aux, sig*auxsend);
+	}).add;
+)
+
+
+(
+SynthDef(\prayer_bell, { |outbus, t_trig = 1, sing_switch = 0, freq = 2434, amp = 0.5, decayscale = 1, lag = 10, i_doneAction = 0|
+  var sig, input, first, freqscale, mallet, sing;
+  freqscale = freq / 2434;
+  freqscale = Lag3.kr(freqscale, lag);
+  decayscale = Lag3.kr(decayscale, lag);
+
+  mallet = LPF.ar(Trig.ar(t_trig, SampleDur.ir)!2, 10000 * freqscale);
+  sing = LPF.ar(
+    LPF.ar(
+      {
+        PinkNoise.ar * Integrator.kr(sing_switch * 0.001, 0.999).linexp(0, 1, 0.01, 1) * amp
+      } ! 2,
+      2434 * freqscale
+    ) + Dust.ar(0.1), 10000 * freqscale
+  ) * LFNoise1.kr(0.5).range(-45, -30).dbamp;
+  input = mallet + (sing_switch.clip(0, 1) * sing);
+
+
+  sig = DynKlank.ar(`[
+    [
+      (first = LFNoise1.kr(0.5).range(2424, 2444)) + Line.kr(20, 0, 0.5),
+      first + LFNoise1.kr(0.5).range(1,3),
+      LFNoise1.kr(1.5).range(5435, 5440) - Line.kr(35, 0, 1),
+      LFNoise1.kr(1.5).range(5480, 5485) - Line.kr(10, 0, 0.5),
+      LFNoise1.kr(2).range(8435, 8445) + Line.kr(15, 0, 0.05),
+      LFNoise1.kr(2).range(8665, 8670),
+      LFNoise1.kr(2).range(8704, 8709),
+      LFNoise1.kr(2).range(8807, 8817),
+      LFNoise1.kr(2).range(9570, 9607),
+      LFNoise1.kr(2).range(10567, 10572) - Line.kr(20, 0, 0.05),
+      LFNoise1.kr(2).range(10627, 10636) + Line.kr(35, 0, 0.05),
+      LFNoise1.kr(2).range(14689, 14697) - Line.kr(10, 0, 0.05)
+    ],
+    [
+      LFNoise1.kr(1).range(-10, -5).dbamp,
+      LFNoise1.kr(1).range(-20, -10).dbamp,
+      LFNoise1.kr(1).range(-12, -6).dbamp,
+      LFNoise1.kr(1).range(-12, -6).dbamp,
+      -20.dbamp,
+      -20.dbamp,
+      -20.dbamp,
+      -25.dbamp,
+      -10.dbamp,
+      -20.dbamp,
+      -20.dbamp,
+      -25.dbamp
+    ],
+    [
+      20 * freqscale.pow(0.2),
+      20 * freqscale.pow(0.2),
+      5,
+      5,
+      0.6,
+      0.5,
+      0.3,
+      0.25,
+      0.4,
+      0.5,
+      0.4,
+      0.6
+    ] * freqscale.reciprocal.pow(0.5)
+  ], input, freqscale, 0, decayscale);
+  DetectSilence.ar(sig, doneAction: i_doneAction);
+  Out.ar(outbus, sig);
+}).add;
+)
+
+Synth(\prayer_bell)
+s.freeAll
+
+(
+SynthDef(\flute, {
+        | out = 0, freq = 440, amp = 1.0, a = 0.1, r = 0.1|
+        //var fmod = 1; // clean
+        //var fmod = LFCub.kr(freq:1/12).range(1, LFNoise2.kr(freq:12.0).range(1,1.1)); // tone deaf flute
+        var fmod = LFCub.kr(freq:1/12).range(1, LFNoise2.kr(freq:12.0).range(1,1.02)); // flute-like sound
+        var env = EnvGen.ar(Env.perc(a, r), levelScale:0.5, doneAction:2);
+        var snd = SinOsc.ar(freq * fmod)!2;
+        Out.ar(bus:out, channelsArray:(env*(amp*snd).tanh));
+    }).add;
+)
+
+Synth(\flute)
+
+(
+SynthDef(\star, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2;
+	var sig, sig1, sig2, sig3;
+	var env1;
+	var fspread;
+	env1 = EnvGen.kr(Env([1,2,1],[1.7,0.8]), 1);
+	fspread = 0.0007 + Rand(0,0.007);
+	sig = SinOsc.ar(freq * ((0..7)/7 - 0.5 * fspread + 1));
+	sig = sig * ( sig/(sig+1.1)*50 * env1 ).clip(0.5);
+	sig1 = sig * (sig.abs > Rand(0.1,0.7));
+	sig = SelectX.ar( EnvGen.kr(Env([0,1,0],[0.1+Rand(0,2.0),0.1+Rand(0,2.0)]), 1), [sig, sig1]);
+	sig = sig * 2;
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(1.01,0.1,1,1.1)),gate,doneAction:doneAction);
+	sig = sig /10;
+	sig = Splay.ar(sig, spread, amp, pan);
+	Out.ar(out, sig);
+}).add;
+)
+
+Synth(\star, [\freq, 200, \spread, 2, \amp, 0.4])
+s.freeAll
+
+(
+SynthDef(\starlet, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2;
+	var sig, sig1, sig2, sig3;
+	var env1;
+	var fspread;
+	env1 = EnvGen.kr(Env([1,20,1],[1.7,0.8]), 1);
+	fspread = 0.0007 + Rand(0,0.007)* env1;
+	sig = SinOsc.ar(freq * ((0..7)/7 - 0.5 * fspread + 1) );
+	sig1 = sig * ( sig/(sig+1.1)*50 * env1 ).clip(0.5);
+	sig = SelectX.ar(\mix.kr(0.5), [sig, sig1]);
+	sig = sig * 2;
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(1.01,0.1,1,1.1)),gate,doneAction:doneAction);
+	sig = sig /10;
+	sig = Splay.ar(sig, spread, amp, pan);
+	Out.ar(out, sig);
+}).add;
+)
+
+Synth(\starlet, [\freq, 500, \amp, 0.4])
+s.freeAll
