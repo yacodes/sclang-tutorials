@@ -1,4 +1,5 @@
 (
+  QtGUI.palette = QPalette.dark;
   ~gui = ();
   ~gui[\bounds] = Rect(0, Window.screenBounds.height - 380, 380, 380);
   ~gui[\win] = Window.new("Channel strip", ~gui[\bounds], false, false);
@@ -20,7 +21,7 @@
   ~gui[\freqscope].freqMode_(1);
   ~gui[\win].onClose_({~gui[\freqscope].kill});
   ~gui[\win].view.background = Color(0, 0, 0, 0.5);
-  ~gui[\win].alwaysOnTop = true;
+  ~gui[\win].alwaysOnTop = false;
   ~gui[\win].front;
 
   ~gui;
