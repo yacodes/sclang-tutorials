@@ -1,9 +1,8 @@
 "../14//01.scd".load;
 
-{SinOsc.ar!2}.play
-s.freeAll
-
-Window.closeAll
+{SinOsc.ar!2}.play;
+s.freeAll;
+Window.closeAll;
 
 
 {(SinOsc.ar(500 + SinOsc.ar(1, mul: 400)) * 0.2)!2}.play
