@@ -25,19 +25,19 @@ SCDoc.renderAll
 
 
 ~twister.rows(0, 0).cv
-~twister.rows(0, 0).cv = NumericControlValue(spec:[0, 100]);
+~twister.knobs[0].cv = NumericControlValue(spec:[0, 100]);
 
-~t.rows(0).do(_.ledColor_(Color.rand));
+~twister.rows(0).do(_.ledColor_(Color.rand));
 
 Quarks.gui
 
 MIDIFunc.trace
 
-~t = Twister(TwisterDevice(\primary, MIDIClient.sources[4]));
-~t.knobs[0].cv = NumericControlValue(spec:[0, 1]);
+~twister = Twister(TwisterDevice(\primary, MIDIClient.sources[5]));
+~twister.knobs[0].cv = NumericControlValue(spec:[0, 1]);
 ~t.knobs[0].ledColor = Color.red;
 
-~t.knobs[0].cv.signal(\value).connectToUnique {
+~twister.knobs[0].cv.signal(\value).connectToUnique {
   |...args|
   "ive changed: %".format(args).postln;
 }

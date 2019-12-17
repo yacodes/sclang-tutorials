@@ -22,6 +22,7 @@
   ~gui[\win].onClose_({~gui[\freqscope].kill});
   ~gui[\win].view.background = Color(0, 0, 0, 0.5);
   ~gui[\win].alwaysOnTop = false;
+  ~gui[\win].acceptsClickThrough = true;
   ~gui[\win].front;
 
   ~gui;
