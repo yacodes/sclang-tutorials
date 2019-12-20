@@ -25,6 +25,5 @@ Window.closeAll;
   });
 )
 
-
 s.plotTree
 Env.perc(0.002, 0.05, 225, -4).plot
