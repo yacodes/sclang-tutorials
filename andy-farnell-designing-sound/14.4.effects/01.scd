@@ -1,4 +1,4 @@
-"../14//01.scd".load;
+"../../_/19.12/14//01.scd".load;
 s.boot;
 s.quit;
 Window.closeAll;
