@@ -69,3 +69,9 @@ Window.closeAll;
 ~effect.set(\depth, 0.1);
 ~effect.set(\rate, 0.2);
 ~groups.effects.freeAll;
+
+
+// References
+// * gspot.com/2009/05/simple-phaser-effect.html
+// * http://ecmc.rochester.edu/ecmc/docs/supercollider/scbook/Ch21_Interface_Investigations/ixi%20SC%20tutorial/ixi_SC_tutorial_12.html
+// * https://en.wikipedia.org/wiki/Phaser_(effect)
