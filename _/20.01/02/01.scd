@@ -36,7 +36,7 @@ s.scope;
     envelope = EnvGen.ar(Env.perc(atk, rel), doneAction: Done.freeSelf);
 
     source = Saw.ar(freq);
-    2.do({ |i| source = AllpassC.ar(source, 0.03, (i + 1) * 0.01, (i + 1) * 0.25); });
+    4.do({ |i| source = AllpassC.ar(source, 0.03, (i + 1) * 0.01, (i + 1) * 0.25); });
 
     local = LocalIn.ar(2) * 0.98;
     local = LeakDC.ar(local);
@@ -49,3 +49,4 @@ s.scope;
     Out.ar(out, (local * envelope * amp).tanh);
   }).add;
 )
+Synth(\feedback, [\freq, 110]);
