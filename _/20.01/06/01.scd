@@ -80,8 +80,8 @@ Synth(\fbsaw01, [\atk, 10, \rel, 10])
     feedback = Limiter.ar(feedback);
     feedback = LeakDC.ar(feedback);
     LocalOut.ar(feedback);
-
     feedback = Mix.ar(GVerb.ar(feedback));
+    feedback = BLowShelf.ar(feedback, 200, 0.5, 12);
     Out.ar(out, (feedback * envelope * Lag.kr(amp, 20)).tanh);
   }).add;
 )
