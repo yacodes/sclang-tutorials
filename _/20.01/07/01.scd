@@ -185,11 +185,12 @@ Window.closeAll;
 
   ~synths.effects = ();
   ~synths.effects.reverb = Synth(\reverb, [\in, ~busses.effects, \out, ~busses.effects], ~groups.effects, \addToTail);
-  ~synths.effects.phaser = Synth(\chorus, [\in, ~busses.effects, \out, ~busses.processing], ~groups.effects, \addToTail);
-  // ~synths.effects.delay = Synth(\delay, [\in, ~busses.effects, \out, ~busses.processing], ~groups.effects, \addToTail);
+  ~synths.effects.phaser = Synth(\chorus, [\in, ~busses.effects, \out, ~busses.effects], ~groups.effects, \addToTail);
+  ~synths.effects.delay = Synth(\delay, [\in, ~busses.effects, \out, ~busses.processing], ~groups.effects, \addToTail);
 
   ~synths.processing = ();
   ~synths.processing.amp = Synth(\amp, [\in, ~busses.processing, \out, ~busses.processing], ~groups.processing, \addToTail);
+
   ~synths.processing.limiter = Synth(\limiter, [\in, ~busses.processing, \out, ~busses.hardware], ~groups.processing, \addToTail);
 )
 ~groups.root.free;
