@@ -63,13 +63,13 @@ Window.closeAll;
 (
   SynthDef(\perc, {
     | freq = 220,
-    atk = 0.01, rel = 1,
-    gate = 1, pan = 0, amp = 0.1, out = 0 |
+      atk = 0.01, rel = 1,
+      pan = 0, amp = 0.1, out = 0 |
     var envelope, source, feedback;
 
     source = Saw.ar(freq * {LFNoise1.kr(0.5, 10).midiratio}!2);
     8.do({|i| source = AllpassC.ar(source, 0.08, Rand(0.001, 0.08), 1)});
-    envelope = EnvGen.ar(Env.adsr(attackTime: atk, releaseTime: rel), gate, doneAction: Done.freeSelf);
+    envelope = EnvGen.ar(Env.perc(atk, rel), doneAction: Done.freeSelf);
 
     feedback = LocalIn.ar(2) * 0.9;
     feedback = AllpassC.ar(feedback, 0.001, 0.001, 0);
@@ -83,6 +83,7 @@ Window.closeAll;
     Out.ar(out, (feedback * envelope * amp).tanh);
   }).add;
 )
+Synth(\perc)
 
 (
   ~bpm = 128;

@@ -98,6 +98,8 @@ SynthDef(\perc, {
 }).add;
 )
 
+Synth(\perc, [\freq, 440, \amp, 1]);
+
 // LFPar.ar(8).range(0.0001, 0.1)) * 8;
 
 { LFGauss.ar(0.01, 0.6) }.plot;
@@ -112,7 +114,7 @@ SynthDef(\perc, {
     \freq, Prand.new(((Scale.minor.ratios * 500) + 500), inf),
     \sustain, 1,
     \amp, 0.9
-  ).play;
+  ).stop;
 )
 s.freeAll
 
@@ -151,6 +153,8 @@ SynthDef("sn", {
 }).add;
 )
 
+
+Synth(\tom, [\startPitch, 200])
 (
 SynthDef("tom", {
     arg startPitch = 6000, endPitch=60, clickLevel=0.7, pitchRel = 0.11, noiseLevel=1, noiseRel= 0.3;
