@@ -7,14 +7,14 @@ s.scope;
 
 (
   // Configuration
-  var channels = 4;
+  var channels = 2;
   ~busses = (
     audio: Bus.audio(s, channels),
     hardware: 0,
   );
   ~config = (
     \device: "CTM",
-    \channels: channels,
+    \channels: 2,//channels,
     \out: ~busses.audio,
     \tempo: 80/60,
   );
@@ -81,7 +81,7 @@ s.scope;
         pan = 0, amp = 0.1, out = 0 |
       var envelope, source, feedback;
 
-      source = Saw.ar(freq * {LFNoise1.kr(0.5, 0.1).midiratio}!2);
+      source = Saw.ar(freq * {LFNoise1.kr(0.5, 1).midiratio}!2);
       2.do({|i| source = AllpassC.ar(source, 0.08, Rand(0.001, 0.08), 1)});
       envelope = EnvGen.ar(Env.perc(atk, rel), doneAction: Done.freeSelf);
 
@@ -302,4 +302,31 @@ s.scope;
       );
     }).play(~clock);
   });
+)
+
+~routine.stop;
+Pbindef(\dpad).stop
+Pbindef(\perc).stop
+Pbindef(\pad).stop
+Pbindef(\kick).stop
+s.freeAll
+
+Synth(\perc, [\amp, 2, \rel, 0.5]);
+
+(
+  Pbindef(\perc,
+    \instrument, Prand([\perc], inf),
+    \dur, Prand([1], inf),
+    \stretch, ~config.tempo,
+    \degree, Pseq([
+      0,
+      Prand((0, 2..12), 7),
+    ], inf),
+    \scale, Scale.minor,
+    \root, -30,
+    \rel, 2,
+    \amp, Pseq([1], inf),
+    \pan, 0, //Pwhite(-1.0, 1.0, inf),
+    \out, 0,
+  ).stop;
 )

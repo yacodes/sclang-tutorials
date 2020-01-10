@@ -96,24 +96,6 @@ MIDIIn.connectAll;
 
 ~notes = Array.newClear(128);
 (
-  MIDIdef.noteOff(\fbsinOFF, {
-    arg vel, nn;
-    if (~notes[nn] != nil, {
-      ~notes[nn].set(\gate, 0);
-      ~notes[nn].release;
-      ~notes[nn] = nil;
-    });
-  });
-  // MIDIdef.noteOn(\fbsinON, { arg vel, nn, chan, src;
-  //   if (vel > 0, {
-  //     ~notes[nn] = Synth(\fbsin01, [
-  //       \freq, nn.midicps,
-  //       \amp, vel.linexp(1, 127, 0.001, 0.1),
-  //       \gate, 1,
-  //     ]);
-  //     ["note on", vel, nn].postln;
-  //   });
-  // });
   MIDIdef.polytouch(\fbsinTOUCH, {
     arg vel, nn, aa, bb;
     if (vel == 0, {
