@@ -1,7 +1,7 @@
 SynthDef(\fbsin01, {
   | freq = 220,
-  atk = 0.01, rel = 1,
-  amp = 0.5, out = 0 |
+    atk = 0.01, rel = 1,
+    amp = 0.5, out = 0 |
   var envelope, source, feedback;
 
   source = SinOsc.ar(freq);
