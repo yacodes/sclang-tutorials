@@ -1,5 +1,4 @@
-// Quarantine Live Stream #2: Livecoding using Ndefs in SuperCollider
-// Theme: GUI
+// Quarantine Live Stream #2: Clown coloured SuperCollider GUI programming made easy
 // https://youtu.be/Ww2QbWwWln0
 
 (
