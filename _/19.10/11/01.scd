@@ -12,6 +12,20 @@
 //   s.boot;
 // )
 
+100 + 320
+
+(
+  100 + 100;
+
+  SynthDef(\sin, {
+	SinOsc.ar(440);
+  }).add;
+)
+
+{SinOsc.ar}.play
+
+s.freeAll
+
 // Moog bass
 (
   SynthDef(\moogbass, {
