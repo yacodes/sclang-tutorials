@@ -14,6 +14,36 @@
 
 100 + 320
 
+SinOscFB.ar()
+
+SinOscFB.ar(freq: )
+
+SinOscFB
+
+SinOsc.ar()
+
+SinOscFB.ar(440)
+
+SinOsc
+
+SinOscFB
+
+SinOsc
+
+w.view.decorator = FlowLayout(w.view.bounds);
+
+SinOs
+
+Sin
+
+SinOs
+
+SinOsc.ar(440);
+
+
+
+
+
 (
   100 + 100;
 
