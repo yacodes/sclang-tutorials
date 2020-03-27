@@ -91,4 +91,4 @@ s.freeAll;
 
 // References
 // * https://composerprogrammer.com/teaching/supercollider/sctutorial/6.4%20Effects%201.html
-// * 
+// * https://en.wikibooks.org/wiki/Designing_Sound_in_SuperCollider/Schroeder_reverb
