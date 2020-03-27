@@ -43,38 +43,40 @@ Window.closeAll;
   }).add;
 )
 
-(
-  SynthDef(\schroeder, {
-	| mix = 0.5,
-	  in = 0, out = 0 |
-	var input, sig, delrd, output, deltimes;
+SynthDef(\schroeder, {
+  | mix = 0.5,
+	in = 0, out = 0 |
+  var input, sig, delrd, output, deltimes;
 
-	input = In.ar(in, 2);
-	delrd = LocalIn.ar(4);
+  input = In.ar(in, 2);
+  delrd = LocalIn.ar(4);
 
-	output = input + delrd[[0, 1]];
+  output = input + delrd[[0, 1]];
 
-	sig = [
-	  output[0] + output[1],
-	  output[0] - output[1],
-	  delrd[2] + delrd[3],
-	  delrd[2] - delrd[3],
-	];
-	sig = [
-	  sig[0] + sig[2],
-	  sig[1] + sig[3],
-	  sig[0] - sig[2],
-	  sig[1] - sig[3],
-	];
-	sig = sig * [0.4, 0.37, 0.33, 0.3];
+  sig = [
+	output[0] + output[1],
+	output[0] - output[1],
+	delrd[2] + delrd[3],
+	delrd[2] - delrd[3],
+  ];
+  sig = [
+	sig[0] + sig[2],
+	sig[1] + sig[3],
+	sig[0] - sig[2],
+	sig[1] - sig[3],
+  ];
+  sig = sig * [0.4, 0.37, 0.33, 0.3];
 
-	deltimes = [101, 143, 165, 177] * 0.001 - ControlDur.ir;
+  deltimes = [101, 143, 165, 177] * 0.001 - ControlDur.ir;
 
-	LocalOut.ar(DelayC.ar(sig, deltimes, deltimes));
+  LocalOut.ar(DelayC.ar(sig, deltimes, deltimes));
 
-	Out.ar(out, output);
-  }).add;
-)
+  Out.ar(out, output);
+}).add;
+
+SinOsc.ar()
+
+100 + 100
 
 s.meter
 FreqScope.new
